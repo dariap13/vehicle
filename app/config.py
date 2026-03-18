@@ -6,7 +6,10 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from dotenv import dotenv_values
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+INITIAL_ENV = dict(os.environ)
 
 
 def _resolve_path(raw_value: str | None, default: Path) -> Path:
@@ -55,25 +58,61 @@ class Settings:
                 "base_url": "https://openrouter.ai/api/v1",
             },
         }
+        dotenv_overrides = self._dotenv_overrides()
         default_db_path = self.project_root / "data" / "vehicles.db"
-        self.database_url = os.getenv("DATABASE_URL") or _sqlite_url(default_db_path)
-        self.images_dir = _resolve_path(os.getenv("IMAGES_DIR"), self.project_root / "images")
-        self.log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+        self.database_url = self._env_value(
+            "DATABASE_URL",
+            _sqlite_url(default_db_path),
+            dotenv_overrides,
+        )
+        self.images_dir = _resolve_path(
+            self._env_value("IMAGES_DIR", None, dotenv_overrides),
+            self.project_root / "images",
+        )
+        self.log_level = self._env_value("LOG_LEVEL", "INFO", dotenv_overrides).upper()
 
-        self.llm_provider = os.getenv("LLM_PROVIDER", "openai").strip().lower() or "openai"
+        self.llm_provider = (
+            self._env_value("LLM_PROVIDER", "openai", dotenv_overrides).strip().lower() or "openai"
+        )
         defaults = provider_defaults.get(
             self.llm_provider,
             provider_defaults["openai"],
         )
 
-        self.openai_api_key = os.getenv("OPENAI_API_KEY") or None
-        self.openai_model = os.getenv("OPENAI_MODEL", defaults["model"])
-        self.llm_api_key = os.getenv("LLM_API_KEY") or self.openai_api_key
-        self.llm_model = os.getenv("LLM_MODEL") or self.openai_model or defaults["model"]
-        self.llm_base_url = os.getenv("LLM_BASE_URL") or defaults["base_url"]
-        self.llm_site_url = os.getenv("LLM_SITE_URL") or "http://localhost:8501"
-        self.llm_app_name = os.getenv("LLM_APP_NAME", "Vehicle AI Agent")
-        self.enable_llm_agent = os.getenv("ENABLE_LLM_AGENT", "true").lower() in {
+        self.openai_api_key = self._env_value("OPENAI_API_KEY", None, dotenv_overrides) or None
+        self.openai_model = self._env_value(
+            "OPENAI_MODEL",
+            defaults["model"],
+            dotenv_overrides,
+        )
+        self.llm_api_key = (
+            self._env_value("LLM_API_KEY", None, dotenv_overrides) or self.openai_api_key
+        )
+        self.llm_model = (
+            self._env_value("LLM_MODEL", None, dotenv_overrides)
+            or self.openai_model
+            or defaults["model"]
+        )
+        self.llm_base_url = self._env_value(
+            "LLM_BASE_URL",
+            defaults["base_url"],
+            dotenv_overrides,
+        )
+        self.llm_site_url = self._env_value(
+            "LLM_SITE_URL",
+            "http://localhost:8501",
+            dotenv_overrides,
+        )
+        self.llm_app_name = self._env_value(
+            "LLM_APP_NAME",
+            "Vehicle AI Agent",
+            dotenv_overrides,
+        )
+        self.enable_llm_agent = self._env_value(
+            "ENABLE_LLM_AGENT",
+            "true",
+            dotenv_overrides,
+        ).lower() in {
             "1",
             "true",
             "yes",
@@ -83,6 +122,33 @@ class Settings:
     @property
     def llm_enabled(self) -> bool:
         return self.enable_llm_agent and bool(self.llm_api_key)
+
+    def _dotenv_overrides(self) -> dict[str, str]:
+        env_path = self.project_root / ".env"
+        if not env_path.exists():
+            return {}
+        return {
+            key: value
+            for key, value in dotenv_values(env_path).items()
+            if value is not None
+        }
+
+    @staticmethod
+    def _env_value(
+        key: str,
+        default: str | None,
+        dotenv_overrides: dict[str, str],
+    ) -> str | None:
+        current_value = os.getenv(key)
+        initial_value = INITIAL_ENV.get(key)
+
+        if current_value is not None and current_value != initial_value:
+            return current_value
+        if key in dotenv_overrides:
+            return dotenv_overrides[key]
+        if current_value is not None:
+            return current_value
+        return default
 
 
 settings = Settings()
