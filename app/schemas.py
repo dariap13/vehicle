@@ -36,3 +36,5 @@ class HealthResponse(BaseModel):
     classifier_loaded: bool = False
     agent_available: bool = False
     agent_mode: str = "rule-based"
+    agent_provider: str = "rule-based"
+    llm_model: str | None = None

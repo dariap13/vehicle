@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router as api_router
 from app.config import settings
@@ -42,6 +43,7 @@ async def lifespan(_: FastAPI):
 
 
 def create_app() -> FastAPI:
+    settings.images_dir.mkdir(parents=True, exist_ok=True)
     app = FastAPI(
         title="Vehicle AI Agent",
         description="Klasyfikacja obrazów pojazdów + agent NL→SQL",
@@ -65,6 +67,11 @@ def create_app() -> FastAPI:
             "health": "/api/health",
         }
 
+    app.mount(
+        "/assets/images",
+        StaticFiles(directory=str(settings.images_dir)),
+        name="vehicle-images",
+    )
     app.include_router(api_router)
     return app
 

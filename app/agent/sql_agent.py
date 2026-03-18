@@ -44,11 +44,9 @@ class SQLAgent:
 
     def __init__(self) -> None:
         settings.reload()
-        self._client = (
-            OpenAI(api_key=settings.openai_api_key)
-            if settings.llm_enabled and OpenAI
-            else None
-        )
+        self._provider = settings.llm_provider
+        self._model = settings.llm_model
+        self._client = self._build_client()
 
     @property
     def is_available(self) -> bool:
@@ -56,14 +54,22 @@ class SQLAgent:
 
     @property
     def mode(self) -> str:
-        return "openai+fallback" if self._client else "rule-based"
+        return f"{self._provider}+fallback" if self._client else "rule-based"
+
+    @property
+    def provider(self) -> str:
+        return self._provider
+
+    @property
+    def model(self) -> str | None:
+        return self._model if self._client else None
 
     def ask(self, question: str, db: Session) -> AgentResult:
         cleaned_question = question.strip()
         if not cleaned_question:
             return AgentResult("", "", [], [], "Pytanie nie moze byc puste.")
 
-        built_query = self._build_with_openai(cleaned_question)
+        built_query = self._build_with_llm(cleaned_question)
         if built_query is None:
             built_query = self._build_rule_based_query(cleaned_question, db)
 
@@ -103,11 +109,27 @@ class SQLAgent:
                 f"Blad wykonania zapytania: {exc}",
             )
 
-    def _build_with_openai(self, question: str) -> BuiltQuery | None:
+    def _build_client(self) -> OpenAI | None:
+        if not (settings.llm_enabled and OpenAI):
+            return None
+
+        default_headers: dict[str, str] = {}
+        if self._provider == "openrouter":
+            default_headers["HTTP-Referer"] = settings.llm_site_url or "http://localhost:8501"
+            default_headers["X-Title"] = settings.llm_app_name
+
+        return OpenAI(
+            api_key=settings.llm_api_key,
+            base_url=settings.llm_base_url,
+            default_headers=default_headers or None,
+            max_retries=0,
+        )
+
+    def _build_with_llm(self, question: str) -> BuiltQuery | None:
         if self._client is None:
             return None
 
-        prompt = f"""
+        system_prompt = """
 You translate Polish user questions into a single safe SQLite SELECT query.
 Return ONLY valid JSON with keys: sql_query, explanation.
 
@@ -124,14 +146,20 @@ Rules:
 - If the query returns vehicles, include vehicle_id and image_url.
 - Use LEFT JOIN vehicle_images vi ON vi.vehicle_id = v.vehicle_id when appropriate.
 - Use case-insensitive matching.
-
-Question:
-{question}
+- Keep explanation short and concrete.
 """.strip()
 
         try:
-            response = self._client.responses.create(model=settings.openai_model, input=prompt)
-            payload = self._strip_code_fences(response.output_text)
+            response = self._client.chat.completions.create(
+                model=self._model,
+                temperature=0,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question},
+                ],
+            )
+            message = response.choices[0].message.content or ""
+            payload = self._extract_json_payload(message)
             parsed = json.loads(payload)
             sql_query = str(parsed["sql_query"]).strip()
             explanation = str(
@@ -139,7 +167,7 @@ Question:
             ).strip()
             return BuiltQuery(sql_query=sql_query, explanation=explanation, params={})
         except Exception as exc:
-            logger.warning("OpenAI fallback do trybu regułowego: %s", exc)
+            logger.warning("LLM fallback do trybu regułowego (%s): %s", self._provider, exc)
             return None
 
     def _build_rule_based_query(self, question: str, db: Session) -> BuiltQuery | None:
@@ -386,6 +414,15 @@ Question:
             stripped = re.sub(r"^```(?:json)?", "", stripped).strip()
             stripped = re.sub(r"```$", "", stripped).strip()
         return stripped
+
+    @classmethod
+    def _extract_json_payload(cls, payload: str) -> str:
+        stripped = cls._strip_code_fences(payload)
+        if stripped.startswith("{") and stripped.endswith("}"):
+            return stripped
+
+        match = re.search(r"\{.*\}", stripped, flags=re.DOTALL)
+        return match.group(0).strip() if match else stripped
 
     @staticmethod
     def _is_safe_sql(sql_query: str) -> bool:

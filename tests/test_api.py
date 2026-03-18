@@ -5,6 +5,8 @@ def test_health_endpoint(client):
     payload = response.json()
     assert payload["status"] == "ok"
     assert payload["agent_available"] is True
+    assert payload["agent_provider"] == "rule-based"
+    assert payload["llm_model"] is None
 
 
 def test_classify_upload_endpoint(client, tiny_png_bytes):

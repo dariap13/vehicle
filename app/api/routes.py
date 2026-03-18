@@ -46,6 +46,8 @@ def health_check() -> HealthResponse:
         classifier_loaded=classifier_ok,
         agent_available=agent.is_available,
         agent_mode=agent.mode,
+        agent_provider=agent.provider if agent.mode != "rule-based" else "rule-based",
+        llm_model=agent.model,
     )
 
 

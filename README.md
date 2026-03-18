@@ -12,10 +12,16 @@ Aplikacja realizuje pełny przeplyw wymagany w zadaniu:
 ```text
 Streamlit -> FastAPI -> SQLAlchemy/SQLite
                     -> MobileNetV2 (torchvision)
-                    -> Agent NL→SQL (OpenAI optional + deterministic fallback)
+                    -> Agent NL->SQL (OpenAI-compatible provider optional + deterministic fallback)
 ```
 
-Klucz OpenAI jest opcjonalny. Jezeli `OPENAI_API_KEY` jest ustawiony, agent najpierw probuje wygenerowac SQL przez OpenAI Responses API. Bez klucza projekt nadal dziala lokalnie dzieki bezpiecznemu fallbackowi opartemu o reguly.
+Warstwa LLM jest opcjonalna. Backend obsluguje dostawcow kompatybilnych z klientem OpenAI, wiec mozna podpiac:
+- `OpenAI`
+- `Groq`
+- `OpenRouter`
+- inny endpoint OpenAI-compatible przez `LLM_BASE_URL`
+
+Bez klucza projekt nadal dziala lokalnie dzieki bezpiecznemu fallbackowi opartemu o reguly.
 
 ## Wymagania
 
@@ -60,9 +66,33 @@ cp .env.example .env
 ```
 
 Najwazniejsze pola:
-- `OPENAI_API_KEY` - opcjonalne
-- `OPENAI_MODEL` - opcjonalne, domyslnie `gpt-4o-mini`
+- `LLM_PROVIDER` - np. `groq`, `openai`, `openrouter`
+- `LLM_API_KEY` - klucz do wybranego providera
+- `LLM_MODEL` - model dla wybranego providera
+- `LLM_BASE_URL` - endpoint API; dla Groq i OpenRouter ma sensowne domyslne wartosci
 - `ENABLE_LLM_AGENT` - `true` lub `false`
+
+Przykladowy darmowy setup dla Groq:
+
+```env
+LLM_PROVIDER=groq
+LLM_API_KEY=twoj_klucz
+LLM_MODEL=qwen/qwen3-32b
+LLM_BASE_URL=https://api.groq.com/openai/v1
+ENABLE_LLM_AGENT=true
+```
+
+Przykladowy setup dla OpenRouter free router:
+
+```env
+LLM_PROVIDER=openrouter
+LLM_API_KEY=twoj_klucz
+LLM_MODEL=openrouter/free
+LLM_BASE_URL=https://openrouter.ai/api/v1
+LLM_SITE_URL=http://localhost:8501
+LLM_APP_NAME=Vehicle AI Agent
+ENABLE_LLM_AGENT=true
+```
 
 ### Docker Compose
 
@@ -101,6 +131,7 @@ Przykladowe dane odpowiadaja tresci zadania rekrutacyjnego, w tym:
 | `POST` | `/api/ask` | Pytanie natural language -> SQL -> wynik + klasyfikacja |
 | `GET` | `/api/vehicles` | Lista pojazdow |
 | `GET` | `/api/health` | Status uslugi |
+| `GET` | `/assets/images/{filename}` | Lokalne obrazki seeded demo |
 
 ## Przykladowe wywolania
 
@@ -133,6 +164,12 @@ Testy pokrywaja:
 - logike mapowania klas ImageNet -> typ pojazdu,
 - dzialanie agenta NL→SQL,
 - integracje endpointow API.
+
+## Provider recommendation
+
+Do tego projektu najpraktyczniejsze sa dwa warianty:
+- `Groq` - najprostszy do demo, bardzo szybki i latwy do podpietia przez OpenAI-compatible API.
+- `OpenRouter` - najlepszy, jezeli chcesz tanio lub darmowo przelaczac sie miedzy wieloma modelami bez zmiany integracji.
 
 ## Struktura projektu
 
