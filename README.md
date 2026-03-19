@@ -211,6 +211,39 @@ docker compose up --build
 uv run ruff check
 ```
 
+## Decyzje architektoniczne
+
+### Dlaczego FastAPI + SQLite + MobileNetV2?
+
+- **FastAPI** — szybki, asynchroniczny framework z automatyczną dokumentacją Swagger. Pozwala na jedno `make api` zamiast oddzielnego backendu i frontendu. Idealny do demo.
+- **SQLite** — zero konfiguracji, baza tworzy się automatycznie przy starcie. Wystarczający do zadania rekrutacyjnego; w produkcji łatwo wymienić na PostgreSQL dzięki SQLAlchemy.
+- **SQLAlchemy ORM** — modele w Pythonie zamiast surowego SQL. Ułatwia dalszy rozwój (migracje, relacje, walidacja).
+- **MobileNetV2 (torchvision)** — lekki, pretrenowany model z dobrą dokładnością na ImageNet. Nie wymaga GPU, ładuje się w sekundy, wystarczający do klasyfikacji pojazdów.
+- **Jeden plik HTML jako frontend** — zero zależności frontendowych (brak node_modules, brak buildu). FastAPI serwuje go z dysku. Prostota uruchomienia.
+
+### Dlaczego LLM + fallback regułowy?
+
+- Agent NL→SQL korzysta z LLM (przez OpenAI-compatible API), ale jeśli klucz nie jest podany — przełącza się na deterministyczny fallback oparty o reguły (pattern matching na pytaniach).
+- Dzięki temu projekt **zawsze działa lokalnie** bez żadnych zewnętrznych zależności. Reviewer nie musi zakładać konta ani podawać klucza API.
+- Fallback pokrywa najczęstsze wzorce pytań z zadania (właściciel, cena, historia transakcji, dostępność).
+
+### Dlaczego walidacja SQL?
+
+- Wygenerowane zapytania przechodzą przez `_is_safe_sql()` — whitelist na `SELECT`/`WITH`, blacklist na `INSERT`, `DROP`, `DELETE` itp.
+- Chroni przed SQL injection w scenariuszu, gdy LLM wygeneruje niebezpieczne zapytanie.
+
+## Co bym ulepszyła mając więcej czasu
+
+- **PostgreSQL zamiast SQLite** — pełne wsparcie Unicode (COLLATE, LOWER), lepsze do produkcji.
+- **Alembic** — migracje schematu bazy danych zamiast auto-create przy starcie.
+- **Fine-tuning / few-shot prompting** — lepsze pokrycie pytań w języku naturalnym, obsługa złożonych zapytań wielotabelowych.
+- **Dedykowany model klasyfikacji** — wytrenowany na zbiorze pojazdów (np. Stanford Cars) zamiast ogólnego ImageNet, co dałoby dokładniejsze typy (sedan vs SUV vs pickup).
+- **Cache klasyfikacji** — zapisywanie wyników klasyfikacji w bazie, żeby nie uruchamiać modelu za każdym razem dla tego samego obrazu.
+- **Autentykacja i rate limiting** — JWT/API key + throttling na endpointach.
+- **CI/CD pipeline** — GitHub Actions z automatycznym uruchamianiem testów, lintowania i budowania Dockera przy każdym pushu.
+- **Monitoring** — logowanie strukturalne (JSON), metryki Prometheus, healthcheck z informacją o obciążeniu.
+- **Frontend w React/Vue** — lepsze UX, routing, state management. Obecny single-file HTML wystarcza na demo, ale nie skaluje się.
+
 ## Struktura projektu
 
 ```text
