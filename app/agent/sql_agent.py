@@ -134,19 +134,29 @@ You translate Polish user questions into a single safe SQLite SELECT query.
 Return ONLY valid JSON with keys: sql_query, explanation.
 
 Schema:
-- vehicles(vehicle_id, brand, model, year, price, availability)
+- vehicles(vehicle_id, brand, model, year, price DECIMAL, availability TEXT)
+  availability values: 'available' or 'sold' (text, NOT boolean/integer)
 - owners(owner_id, first_name, last_name, city)
-- transaction_history(transaction_id, vehicle_id, buyer_id, seller_id, transaction_date, price)
+- transaction_history(
+    transaction_id, vehicle_id, buyer_id, seller_id NULLABLE, transaction_date DATE, price DECIMAL
+  )
+  seller_id is NULL when bought from a dealer (first purchase)
 - vehicle_images(image_id, vehicle_id, image_url)
 
 Rules:
 - Return a single read-only query starting with SELECT or WITH.
 - Never use INSERT, UPDATE, DELETE, DROP, ALTER, ATTACH, PRAGMA, CREATE, REPLACE.
 - Prefer parameter-free SQL because the API executes the generated SQL directly.
-- If the query returns vehicles, include vehicle_id and image_url.
+- If the query returns vehicles, include vehicle_id and image_url
+  via LEFT JOIN vehicle_images.
 - Use LEFT JOIN vehicle_images vi ON vi.vehicle_id = v.vehicle_id when appropriate.
-- Use case-insensitive matching.
-- Keep explanation short and concrete.
+- Use LEFT JOIN (not JOIN) for seller in transaction_history because seller_id can be NULL.
+- availability is TEXT: use availability = 'available' or availability = 'sold', never 1 or 0.
+- Use COLLATE NOCASE for case-insensitive text matching.
+- Known data (ASCII, no diacritics in DB):
+  Owners: Kowalski, Nowak, Zielinski, Wisniewska. Cities: Warszawa, Krakow, Gdansk, Poznan.
+  Vehicles: Toyota Corolla, BMW X5, MAN TGS, Honda CBR600RR, Skoda Octavia.
+- Keep explanation short, in Polish.
 """.strip()
 
         try:

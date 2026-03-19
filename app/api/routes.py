@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from app.agent.sql_agent import get_agent
@@ -111,8 +111,12 @@ def ask_question(request: AskRequest, db: Session = Depends(get_db)) -> AskRespo
 
 
 @router.get("/vehicles")
-def list_vehicles(db: Session = Depends(get_db)) -> list[dict]:
-    vehicles = db.query(Vehicle).all()
+def list_vehicles(
+    db: Session = Depends(get_db),
+    limit: int = Query(default=50, ge=1, le=500, description="Maks. liczba wynikow"),
+    offset: int = Query(default=0, ge=0, description="Pomiń pierwsze N rekordow"),
+) -> list[dict]:
+    vehicles = db.query(Vehicle).offset(offset).limit(limit).all()
     return [
         {
             "vehicle_id": vehicle.vehicle_id,

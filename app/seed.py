@@ -65,6 +65,9 @@ def seed_database(session: Session) -> None:
         _refresh_image_references(session)
         return
 
+    # Nazwy bez polskich znakow diakrytycznych — SQLite nie obsluguje
+    # Unicode-aware COLLATE NOCASE ani LOWER(), co uniemozliwia niezawodne
+    # porownywanie tekstow z ą/ę/ś/ź/ż zarowno w trybie regul jak i LLM.
     owners = [
         Owner(owner_id=1, first_name="Jan", last_name="Kowalski", city="Warszawa"),
         Owner(owner_id=2, first_name="Anna", last_name="Nowak", city="Krakow"),

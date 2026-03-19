@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent AI Pojazdow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0c10;--surface:#13161c;--surface2:#1a1e26;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --text:#e2e8f0;--text2:#7a8a9e;--text3:#4a5568;
+  --accent:#6366f1;--accent2:#818cf8;
+  --green:#34d399;--amber:#fbbf24;--red:#f87171;--cyan:#22d3ee;
+  --r:12px;
+}
+html{font-size:14px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::selection{background:var(--accent);color:#fff}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:#2a2e38;border-radius:3px}
+
+.app{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+header h1{font-size:1.3rem;font-weight:800;letter-spacing:-.03em}
+.status{display:flex;gap:.4rem;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%}
+.dot.on{background:var(--green);box-shadow:0 0 6px rgba(52,211,153,.4)}
+.dot.off{background:var(--red)}
+.status span{font-size:.75rem;color:var(--text2);font-weight:600}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;margin-bottom:1.5rem;background:var(--surface);border-radius:var(--r);padding:3px;border:1px solid var(--border)}
+.tab{flex:1;padding:.55rem;border-radius:9px;font-size:.8rem;font-weight:700;text-align:center;cursor:pointer;color:var(--text3);border:none;background:none;transition:.2s}
+.tab:hover{color:var(--text2)}
+.tab.active{color:#fff;background:var(--accent)}
+.tab-content{display:none;animation:fade .25s ease}
+.tab-content.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Panel */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;margin-bottom:.75rem}
+.label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--accent2);margin-bottom:.5rem}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+
+/* Metric */
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.7rem;text-align:center}
+.metric b{display:block;font-size:1.5rem;color:#fff;letter-spacing:-.02em}
+.metric small{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+
+/* Input */
+textarea,input[type=url],input[type=text],select{width:100%;padding:.6rem .8rem;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:.85rem}
+textarea{resize:vertical}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.15)}
+textarea{min-height:80px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;padding:.55rem 1rem;border-radius:8px;font-size:.8rem;font-weight:700;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;transition:.15s}
+.btn:hover{background:#242830}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--accent);border:none;color:#fff}
+.btn-p:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btn-s{padding:.4rem .7rem;font-size:.75rem}
+
+/* Code */
+.code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.8rem;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--cyan);white-space:pre-wrap;overflow:auto;max-height:250px;line-height:1.6}
+
+/* Table */
+.tw{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{padding:.5rem .6rem;text-align:left;font-weight:700;color:var(--text2);font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);border-bottom:1px solid var(--border)}
+td{padding:.45rem .6rem;border-bottom:1px solid var(--border);color:var(--text)}
+tr:last-child td{border:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:.2s}
+.card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.card img{width:100%;height:150px;object-fit:cover;display:block;background:var(--bg)}
+.card-b{padding:.8rem}
+.card-brand{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2)}
+.card-model{font-size:.95rem;font-weight:800;color:#fff;margin:.1rem 0 .35rem}
+.card-meta{font-size:.75rem;color:var(--text2);line-height:1.5}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:99px;font-size:.65rem;font-weight:700}
+.badge-g{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+.badge-a{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+
+/* Examples */
+.ex{display:block;width:100%;text-align:left;padding:.45rem .7rem;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:.78rem;cursor:pointer;transition:.15s;font-family:inherit;margin-bottom:.3rem}
+.ex:hover{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.2);color:var(--text)}
+
+/* Upload */
+.upload{border:2px dashed var(--border2);border-radius:var(--r);padding:1.5rem;text-align:center;color:var(--text3);cursor:pointer;transition:.2s;position:relative}
+.upload:hover{border-color:var(--accent);color:var(--text2)}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* Misc */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:spin .5s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:1.5rem;color:var(--text2);font-size:.8rem}
+.alert{padding:.6rem .8rem;border-radius:8px;font-size:.8rem;margin-bottom:.5rem}
+.alert-e{background:rgba(248,113,113,.08);color:var(--red);border:1px solid rgba(248,113,113,.15)}
+.alert-s{background:rgba(52,211,153,.08);color:var(--green);border:1px solid rgba(52,211,153,.15)}
+.alert-i{background:rgba(99,102,241,.06);color:var(--accent2);border:1px solid rgba(99,102,241,.1)}
+.exp{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.8rem;font-size:.82rem;color:var(--text2);line-height:1.55;white-space:pre-wrap}
+.no-img{height:150px;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text3);font-size:.75rem}
+.cls-r{display:flex;gap:1rem;margin-top:.75rem}
+.cls-r img{width:220px;height:160px;object-fit:cover;border-radius:var(--r);border:1px solid var(--border)}
+@media(max-width:640px){.cls-r{flex-direction:column}.cls-r img{width:100%}}
+.row-flex{display:flex;gap:.5rem}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>Agent AI Pojazdow</h1>
+    <div class="status" id="status"><span class="dot"></span><span>...</span></div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="query">Agent</button>
+    <button class="tab" data-tab="classify">Klasyfikator</button>
+    <button class="tab" data-tab="fleet">Flota</button>
+  </nav>
+
+  <!-- Agent -->
+  <div class="tab-content active" id="tab-query">
+    <div class="panel">
+      <textarea id="qi" placeholder="Zadaj pytanie, np. co ma Kowalski?">co ma Kowalski?</textarea>
+      <div class="row-flex" style="margin-top:.5rem">
+        <button class="btn btn-p" id="run" style="flex:1">Zapytaj</button>
+        <button class="btn" id="clear">Wyczysc</button>
+      </div>
+    </div>
+    <div class="label">Przyklady</div>
+    <div id="examples" style="margin-bottom:.75rem"></div>
+    <div id="qr"></div>
+  </div>
+
+  <!-- Klasyfikator -->
+  <div class="tab-content" id="tab-classify">
+    <div class="g2">
+      <div class="panel">
+        <div class="upload" id="uz">
+          <input type="file" id="fi" accept="image/jpeg,image/png,image/webp">
+          <div style="font-size:.85rem;font-weight:600" id="uz-t">Wgraj obraz</div>
+          <div style="font-size:.7rem;color:var(--text3);margin-top:.2rem">JPG, PNG, WebP</div>
+        </div>
+        <button class="btn btn-s" id="cf" style="width:100%;margin-top:.5rem" disabled>Klasyfikuj plik</button>
+      </div>
+      <div class="panel">
+        <input type="url" id="cu" placeholder="URL obrazu" style="margin-bottom:.5rem">
+        <button class="btn btn-s" id="cub" style="width:100%">Klasyfikuj URL</button>
+        <div class="label" style="margin-top:.75rem">Przykladowe obrazy</div>
+        <div id="samples"></div>
+      </div>
+    </div>
+    <div id="cr"></div>
+  </div>
+
+  <!-- Flota -->
+  <div class="tab-content" id="tab-fleet">
+    <div class="panel">
+      <div class="g3">
+        <div>
+          <div class="label">Szukaj</div>
+          <input type="text" id="fs" placeholder="np. BMW, Corolla, MAN">
+        </div>
+        <div>
+          <div class="label">Status</div>
+          <select id="fa">
+            <option value="all">Wszystkie</option>
+            <option value="available">Dostepne</option>
+            <option value="sold">Sprzedane</option>
+          </select>
+        </div>
+        <div>
+          <div class="label">Sortowanie</div>
+          <select id="fsort">
+            <option value="brand_asc">Marka A-Z</option>
+            <option value="price_desc">Cena malejaco</option>
+            <option value="price_asc">Cena rosnaco</option>
+            <option value="year_desc">Rok malejaco</option>
+            <option value="year_asc">Rok rosnaco</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:.75rem">
+      <button class="btn btn-s" id="rf">Odswiez</button>
+    </div>
+    <div id="fm" class="g3" style="margin-bottom:.75rem"></div>
+    <div class="g3" id="fg"></div>
+  </div>
+
+</div>
+<script>
+const A='',T=25000;
+const PAGE_SIZE=6;
+function e(s){if(s==null)return'';const d=document.createElement('div');d.textContent=String(s);return d.innerHTML}
+function price(v){if(v==null||v==='')return'-';try{return Number(v).toLocaleString('pl-PL')+' PLN'}catch{return String(v)}}
+function conf(v){return v==null?'-':(Number(v)*100).toFixed(1)+'%'}
+function img(r){if(!r)return null;if(r.startsWith('http'))return r;return A+'/assets/images/'+r.split('/').pop()}
+async function f(p,o={}){const c=new AbortController;const t=setTimeout(()=>c.abort(),T);try{const r=await fetch(A+p,{...o,signal:c.signal});clearTimeout(t);return r}catch(e){clearTimeout(t);throw e}}
+async function j(r){try{return await r.json()}catch{return{}}}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+  if(t.dataset.tab==='fleet'&&!fl)loadFleet();
+}));
+
+// Health
+(async()=>{try{const r=await f('/api/health');const h=await r.json();const s=document.getElementById('status');
+  s.innerHTML=`<span class="dot ${h.status==='ok'?'on':'off'}"></span><span>${h.status==='ok'?'polaczony':'rozlaczony'}</span>`
+}catch{document.getElementById('status').innerHTML=`<span class="dot off"></span><span>rozlaczony</span>`}})();
+
+// Examples
+const EX=['co ma Kowalski?','auta powyzej 100k','co kupiono w 2020?','do kogo poszlo BMW X5?','historia Corolli','ile aut dostepnych?'];
+const eg=document.getElementById('examples');
+EX.forEach(x=>{const b=document.createElement('button');b.className='ex';b.textContent=x;b.onclick=()=>{document.getElementById('qi').value=x};eg.appendChild(b)});
+
+// Query
+const run=document.getElementById('run'),clr=document.getElementById('clear'),qi=document.getElementById('qi'),qr=document.getElementById('qr');
+run.onclick=async()=>{const q=qi.value.trim();if(!q)return;run.disabled=true;
+  qr.innerHTML='<div class="loading"><span class="spinner"></span>Analizuje pytanie...</div>';
+  try{const r=await f('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    const d=await j(r);if(!r.ok)qr.innerHTML=err(d.detail||`HTTP ${r.status}`,d.sql_query);else if(d.error)qr.innerHTML=err(d.error,d.sql_query);else qr.innerHTML=ok(d);
+  }catch(x){qr.innerHTML=`<div class="alert alert-e">${e(x.message)}</div>`}run.disabled=false};
+clr.onclick=()=>{qr.innerHTML=''};
+qi.onkeydown=ev=>{if((ev.ctrlKey||ev.metaKey)&&ev.key==='Enter'){ev.preventDefault();run.click()}};
+
+function err(msg,sql){let h=`<div class="alert alert-e">${e(msg)}</div>`;if(sql)h+=`<div class="code">${e(sql)}</div>`;return h}
+
+function ok(d){
+  const rows=d.rows||[],cols=d.columns||[];let h='';
+  // SQL
+  h+=`<div class="g2" style="margin-bottom:.75rem"><div class="panel"><div class="label">Wygenerowany SQL</div><div class="code">${e(d.sql_query||'')}</div></div>`;
+  h+=`<div class="panel"><div class="label">Wyjasnienie</div><div class="exp">${e(d.explanation||'')}</div></div></div>`;
+  // Metrics
+  h+=`<div class="g3" style="margin-bottom:.75rem">
+    <div class="metric"><b>${rows.length}</b><small>Rekordy</small></div>
+    <div class="metric"><b>${cols.length}</b><small>Kolumny</small></div>
+    <div class="metric"><b>${rows.filter(r=>r.classification_vehicle_type).length}</b><small>Sklasyfikowane</small></div></div>`;
+  // Table
+  if(rows.length){
+    const dc=cols.length?cols:Object.keys(rows[0]||{});
+    h+=`<div class="tw"><table><thead><tr>${dc.map(c=>`<th>${e(c)}</th>`).join('')}</tr></thead><tbody>`;
+    rows.forEach(r=>{h+='<tr>';dc.forEach(c=>{let v=r[c];
+      if(c==='image_url'&&v){const u=img(v);v=u?`<img src="${e(u)}" style="height:32px;border-radius:4px" onerror="this.style.display='none'">`:''}
+      else if(c==='classification_confidence')v=conf(v);else if(c==='price')v=price(v);else v=e(v);
+      h+=`<td>${v}</td>`});h+='</tr>'});
+    h+='</tbody></table></div>';
+    // Preview cards
+    const pv=rows.filter(r=>r.brand&&r.model).slice(0,3);
+    if(pv.length){h+=`<div class="g3" style="margin-top:.75rem">`;pv.forEach(r=>{const u=img(r.image_url);
+      h+=`<div class="card">${u?`<img src="${e(u)}" onerror="this.outerHTML='<div class=no-img>-</div>'">`:'<div class="no-img">-</div>'}
+      <div class="card-b"><div class="card-brand">${e(r.brand)}</div><div class="card-model">${e(r.model)}</div>
+      <div class="card-meta">${e(r.year||'-')} &middot; ${price(r.price)}<br>${e(r.classification_vehicle_type||'-')} (${conf(r.classification_confidence)})</div></div></div>`});
+      h+='</div>'}
+  }else h+='<div class="alert alert-i">Brak wynikow.</div>';
+  return h;
+}
+
+// Classifier
+const fi=document.getElementById('fi'),cf=document.getElementById('cf'),cub=document.getElementById('cub'),cu=document.getElementById('cu'),cr=document.getElementById('cr');
+let sf=null;
+fi.onchange=()=>{sf=fi.files[0]||null;cf.disabled=!sf;if(sf)document.getElementById('uz-t').textContent=sf.name};
+cf.onclick=async()=>{if(!sf)return;cf.disabled=true;cr.innerHTML='<div class="loading"><span class="spinner"></span></div>';
+  try{const fd=new FormData;fd.append('file',sf);const r=await f('/api/classify/upload',{method:'POST',body:fd});
+    cr.innerHTML=cls(await j(r),URL.createObjectURL(sf))}catch(x){cr.innerHTML=`<div class="alert alert-e">${e(x.message)}</div>`}cf.disabled=false};
+cub.onclick=async()=>{const u=cu.value.trim();if(!u)return;cub.disabled=true;cr.innerHTML='<div class="loading"><span class="spinner"></span></div>';
+  try{const r=await f('/api/classify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_url:u})});
+    cr.innerHTML=cls(await j(r),u)}catch(x){cr.innerHTML=`<div class="alert alert-e">${e(x.message)}</div>`}cub.disabled=false};
+cu.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();cub.click()}};
+
+function cls(d,src){
+  if(d.detail)return`<div class="alert alert-e">${e(d.detail)}</div>`;
+  return`<div class="panel" style="margin-top:.75rem"><div class="cls-r">
+    <img src="${e(src)}" onerror="this.style.display='none'">
+    <div style="flex:1"><div class="g3" style="margin-bottom:.5rem">
+      <div class="metric"><b style="font-size:1.1rem">${e(d.vehicle_type)}</b><small>Typ</small></div>
+      <div class="metric"><b style="font-size:1.1rem">${conf(d.confidence)}</b><small>Pewnosc</small></div>
+      <div class="metric"><b style="font-size:.85rem">${e(d.imagenet_class)}</b><small>Klasa modelu</small></div></div>
+      <div class="alert ${d.is_vehicle?'alert-s':'alert-i'}">${d.is_vehicle?'Rozpoznano pojazd':'Nie rozpoznano pojazdu'}</div></div></div></div>`;
+}
+
+// Samples
+(async()=>{try{const r=await f('/api/vehicles');const vs=await r.json();const g=document.getElementById('samples');
+  vs.slice(0,4).forEach(v=>{if(!v.images||!v.images.length)return;const u=img(v.images[0].image_url);if(!u)return;
+    const b=document.createElement('button');b.className='ex';b.textContent=v.brand+' '+v.model;b.onclick=()=>{cu.value=u};g.appendChild(b)});
+}catch{}})();
+
+// Fleet
+let fl=false,fo=0,fv=[];
+const fs=document.getElementById('fs'),fa=document.getElementById('fa'),fsort=document.getElementById('fsort');
+async function loadFleet(){const g=document.getElementById('fg'),m=document.getElementById('fm');
+  g.innerHTML='<div class="loading" style="grid-column:1/-1"><span class="spinner"></span></div>';
+  try{const r=await f('/api/vehicles?limit=500&offset=0');fv=await r.json();fl=true;renderFleet()
+  }catch(x){g.innerHTML=`<div class="alert alert-e" style="grid-column:1/-1">${e(x.message)}</div>`}}
+function renderFleet(){const g=document.getElementById('fg'),m=document.getElementById('fm');
+  let vs=[...fv],q=(fs.value||'').trim().toLowerCase(),avf=fa.value,sv=fsort.value;
+  if(q)vs=vs.filter(v=>`${v.brand||''} ${v.model||''}`.toLowerCase().includes(q));
+  if(avf!=='all')vs=vs.filter(v=>(v.availability||'')===avf);
+  if(sv==='brand_asc')vs.sort((a,b)=>`${a.brand||''} ${a.model||''}`.localeCompare(`${b.brand||''} ${b.model||''}`,'pl'));
+  if(sv==='price_desc')vs.sort((a,b)=>Number(b.price||0)-Number(a.price||0));
+  if(sv==='price_asc')vs.sort((a,b)=>Number(a.price||0)-Number(b.price||0));
+  if(sv==='year_desc')vs.sort((a,b)=>Number(b.year||0)-Number(a.year||0));
+  if(sv==='year_asc')vs.sort((a,b)=>Number(a.year||0)-Number(b.year||0));
+  if(fo>=vs.length&&fo>0)fo=Math.max(0,Math.floor((vs.length-1)/PAGE_SIZE)*PAGE_SIZE);
+  const page=vs.slice(fo,fo+PAGE_SIZE),av=vs.filter(v=>v.availability==='available').length;
+    m.innerHTML=`<div class="metric"><b>${vs.length}</b><small>Pojazdy (filtrowane)</small></div><div class="metric"><b>${av}</b><small>Dostepne</small></div><div class="metric"><b>${vs.length-av}</b><small>Sprzedane</small></div>`;
+    const hasPrev=fo>0,hasNext=fo+PAGE_SIZE<vs.length;
+    m.insertAdjacentHTML('beforeend',`<div class="metric"><small>Strona</small><b style="font-size:1rem">${Math.floor(fo/PAGE_SIZE)+1}</b><div style="display:flex;gap:.35rem;justify-content:center;margin-top:.35rem"><button class="btn btn-s" id="fp" ${hasPrev?'':'disabled'}>Poprzednia</button><button class="btn btn-s" id="fn" ${hasNext?'':'disabled'}>Nastepna</button></div></div>`);
+    g.innerHTML=page.map(v=>{const u=v.images&&v.images.length?img(v.images[0].image_url):null;const a=v.availability||'-';const apl=a==='available'?'dostepny':'sprzedany';
+      return`<div class="card">${u?`<img src="${e(u)}" onerror="this.outerHTML='<div class=no-img>-</div>'">`:'<div class="no-img">-</div>'}
+      <div class="card-b"><div class="card-brand">${e(v.brand)}</div><div class="card-model">${e(v.model)}</div>
+      <div style="margin:.3rem 0"><span class="badge ${a==='available'?'badge-g':'badge-a'}">${apl}</span> <span class="badge" style="background:rgba(99,102,241,.08);color:var(--accent2);border:1px solid rgba(99,102,241,.12)">${e(v.year)}</span></div>
+      <div class="card-meta">${price(v.price)}</div></div></div>`}).join('')
+    if(!page.length)g.innerHTML='<div class="alert alert-i" style="grid-column:1/-1">Brak wynikow dla aktualnych filtrow.</div>';
+    document.getElementById('fp')?.addEventListener('click',()=>{if(fo===0)return;fo=Math.max(0,fo-PAGE_SIZE);renderFleet()});
+    document.getElementById('fn')?.addEventListener('click',()=>{if(fo+PAGE_SIZE>=vs.length)return;fo+=PAGE_SIZE;renderFleet()});
+}
+fs.addEventListener('input',()=>{fo=0;if(fl)renderFleet()});
+fa.addEventListener('change',()=>{fo=0;if(fl)renderFleet()});
+fsort.addEventListener('change',()=>{fo=0;if(fl)renderFleet()});
+document.getElementById('rf').onclick=()=>{fl=false;fo=0;fv=[];loadFleet()};
+</script>
+</body>
+</html>

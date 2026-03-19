@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router as api_router
@@ -59,13 +60,11 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    @app.get("/")
-    def root() -> dict[str, str]:
-        return {
-            "name": "Vehicle AI Agent",
-            "docs": "/docs",
-            "health": "/api/health",
-        }
+    frontend_html = settings.project_root / "frontend" / "index.html"
+
+    @app.get("/", response_class=FileResponse)
+    def root():
+        return FileResponse(str(frontend_html), media_type="text/html")
 
     app.mount(
         "/assets/images",
