@@ -31,6 +31,21 @@ class AskResponse(BaseModel):
     error: str | None = None
 
 
+class VehicleImageResponse(BaseModel):
+    image_id: int
+    image_url: str
+
+
+class VehicleResponse(BaseModel):
+    vehicle_id: int
+    brand: str
+    model: str
+    year: int
+    price: float
+    availability: str
+    images: list[VehicleImageResponse] = Field(default_factory=list)
+
+
 class HealthResponse(BaseModel):
     status: str = "ok"
     classifier_loaded: bool = False

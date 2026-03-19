@@ -79,7 +79,7 @@ LLM_PROVIDER=openrouter
 LLM_API_KEY=twoj_klucz
 LLM_MODEL=openrouter/free
 LLM_BASE_URL=https://openrouter.ai/api/v1
-LLM_SITE_URL=http://localhost:8501
+LLM_SITE_URL=http://localhost:8000
 LLM_APP_NAME=Vehicle AI Agent
 ENABLE_LLM_AGENT=true
 ```
@@ -102,6 +102,7 @@ Seed obejmuje wymagane tabele:
 - `owners`
 - `transaction_history`
 - `vehicle_images`
+- `classification_cache` — cache wyników klasyfikacji obrazów
 
 Jeśli zewnętrzne URL-e obrazów są chwilowo blokowane, aplikacja tworzy lokalne placeholdery i zachowuje stabilne wyniki klasyfikacji. Projekt uruchamia się lokalnie bez ręcznego ratowania assetów.
 
@@ -120,10 +121,28 @@ Przykładowe dane odpowiadają treści zadania rekrutacyjnego:
 | `POST` | `/api/classify/upload` | Klasyfikuj przesłany plik |
 | `POST` | `/api/ask` | Pytanie NL → SQL → wynik + klasyfikacja |
 | `GET` | `/api/vehicles` | Lista pojazdów (z paginacją) |
+| `GET` | `/api/vehicles/{id}` | Szczegóły pojedynczego pojazdu |
 | `GET` | `/api/health` | Status usługi |
 | `GET` | `/assets/images/{filename}` | Lokalne obrazki seeded demo |
 
 W odpowiedzi `/api/ask` SQL jest jawnie zwracany w JSON oraz logowany po stronie backendu.
+
+### Przykład z zadania rekrutacyjnego
+
+Pytanie: *„Znajdź wszystkie samochody, których właścicielem był Jan Kowalski."*
+
+```bash
+curl -s -X POST http://localhost:8000/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Znajdz wszystkie samochody, ktorych wlascicielem byl Jan Kowalski."}' \
+  | python3 -m json.tool
+```
+
+Odpowiedź zawiera:
+- `sql_query` — wygenerowany SELECT z JOINem na transaction_history i owners,
+- `rows` — Toyota Corolla i Honda CBR600RR (oba kupione przez Kowalskiego),
+- `classification_vehicle_type` — dla każdego pojazdu z obrazem w bazie (np. „samochod osobowy", „motocykl"),
+- `explanation` — krótkie wyjaśnienie po polsku.
 
 ## Jak testować
 
@@ -135,12 +154,12 @@ make test
 uv run pytest -v
 ```
 
-34 testy pokrywają:
+40 testów pokrywa:
 - mapowanie klas ImageNet na typy pojazdów,
 - działanie agenta NL→SQL (różne wzorce pytań),
-- integrację endpointów API (health, classify, ask),
-- edge-case'y: SQL injection, puste pytania, nieznane pytania, walidacja danych,
-- paginację endpointu `/api/vehicles`.
+- integrację endpointów API (health, classify, ask, vehicles),
+- edge-case'y: SQL injection, path traversal, puste pytania, nieznane pytania, walidacja danych,
+- paginację, szczegóły pojazdu, klasyfikację URL (`/api/vehicles`, `/api/vehicles/{id}`, `/api/classify`).
 
 Testy nie wymagają klucza LLM — używają trybu reguł i dummy classifiera.
 
@@ -253,13 +272,15 @@ app/
   classifier/              # klasyfikator MobileNetV2
   config.py                # konfiguracja (.env)
   database.py              # SQLAlchemy setup
-  models.py                # ORM: vehicles, owners, transactions, images
+  models.py                # ORM: vehicles, owners, transactions, images, cache
   schemas.py               # Pydantic request/response
   seed.py                  # dane startowe
-  main.py                  # FastAPI app
+  main.py                  # FastAPI app + CORS + static files
 frontend/
-  index.html               # frontend webowy (dark theme)
-tests/                     # pytest (34 testy)
+  index.html               # frontend webowy (dark theme, vanilla JS)
+tests/                     # pytest (40 testów)
 Dockerfile
 docker-compose.yml
+.env.example               # szablon konfiguracji
+Makefile                   # setup, test, lint, api, docker-up
 ```

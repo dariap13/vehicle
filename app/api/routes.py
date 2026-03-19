@@ -1,4 +1,13 @@
-"""Endpointy REST API."""
+"""Endpointy REST API.
+
+Uproszczenia:
+- Klasyfikacja wykonywana synchronicznie w uzytkowniku request — przy wiekszym
+  ruchu warto przeniesc do kolejki zadan (Celery/RQ) z asynchronicznym statusem.
+- Brak autentykacji i rate limitingu. W produkcji: JWT/API key + throttling
+  (np. slowapi lub API gateway).
+- Cache klasyfikacji w SQLite — w produkcji Redis dałby szybszy dostep
+  i automatyczne TTL.
+"""
 
 from __future__ import annotations
 
@@ -12,13 +21,14 @@ from app.agent.sql_agent import get_agent
 from app.classifier.vehicle_classifier import ClassificationResult, get_classifier
 from app.config import settings
 from app.database import get_db
-from app.models import Vehicle, VehicleImage
+from app.models import ClassificationCache, Vehicle, VehicleImage
 from app.schemas import (
     AskRequest,
     AskResponse,
     ClassifyRequest,
     ClassifyResponse,
     HealthResponse,
+    VehicleResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -110,28 +120,37 @@ def ask_question(request: AskRequest, db: Session = Depends(get_db)) -> AskRespo
     )
 
 
-@router.get("/vehicles")
+@router.get("/vehicles", response_model=list[VehicleResponse])
 def list_vehicles(
     db: Session = Depends(get_db),
     limit: int = Query(default=50, ge=1, le=500, description="Maks. liczba wynikow"),
     offset: int = Query(default=0, ge=0, description="Pomiń pierwsze N rekordow"),
 ) -> list[dict]:
     vehicles = db.query(Vehicle).offset(offset).limit(limit).all()
-    return [
-        {
-            "vehicle_id": vehicle.vehicle_id,
-            "brand": vehicle.brand,
-            "model": vehicle.model,
-            "year": vehicle.year,
-            "price": float(vehicle.price),
-            "availability": vehicle.availability,
-            "images": [
-                {"image_id": image.image_id, "image_url": image.image_url}
-                for image in vehicle.images
-            ],
-        }
-        for vehicle in vehicles
-    ]
+    return [_vehicle_to_dict(vehicle) for vehicle in vehicles]
+
+
+@router.get("/vehicles/{vehicle_id}", response_model=VehicleResponse)
+def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)) -> dict:
+    vehicle = db.query(Vehicle).filter(Vehicle.vehicle_id == vehicle_id).first()
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Pojazd nie znaleziony.")
+    return _vehicle_to_dict(vehicle)
+
+
+def _vehicle_to_dict(vehicle: Vehicle) -> dict:
+    return {
+        "vehicle_id": vehicle.vehicle_id,
+        "brand": vehicle.brand,
+        "model": vehicle.model,
+        "year": vehicle.year,
+        "price": float(vehicle.price),
+        "availability": vehicle.availability,
+        "images": [
+            {"image_id": image.image_id, "image_url": image.image_url}
+            for image in vehicle.images
+        ],
+    }
 
 
 def _append_classification_columns(
@@ -159,7 +178,7 @@ def _append_classification_columns(
         classification_payload = _empty_classification_payload()
         if classifier and image_reference:
             try:
-                classification = _classify_image(classifier, image_reference)
+                classification = _classify_image(classifier, image_reference, db)
                 classification_payload = {
                     "classification_vehicle_type": classification.vehicle_type,
                     "classification_confidence": round(classification.confidence, 4),
@@ -202,18 +221,64 @@ def _empty_classification_payload() -> dict[str, str | float | bool | None]:
     }
 
 
-def _classify_image(classifier, image_reference: str) -> ClassificationResult:
-    if image_reference.startswith(("http://", "https://")):
-        return classifier.classify_from_url(image_reference)
+def _classify_image(
+    classifier, image_reference: str, db: Session | None = None,
+) -> ClassificationResult:
+    # Check cache first
+    if db is not None:
+        cached = (
+            db.query(ClassificationCache)
+            .filter(ClassificationCache.image_reference == image_reference)
+            .first()
+        )
+        if cached:
+            logger.debug("Cache hit for image_reference=%s", image_reference)
+            return ClassificationResult(
+                vehicle_type=cached.vehicle_type,
+                imagenet_class=cached.imagenet_class,
+                confidence=cached.confidence,
+                is_vehicle=cached.is_vehicle,
+            )
 
-    full_path = settings.project_root / image_reference
-    if not full_path.exists():
-        full_path = settings.images_dir / Path(image_reference).name
-    if not full_path.exists():
-        full_path = Path(image_reference)
-    if not full_path.exists():
-        raise FileNotFoundError(f"Nie znaleziono pliku: {image_reference}")
-    return classifier.classify_from_path(full_path)
+    # Run classification
+    if image_reference.startswith(("http://", "https://")):
+        result = classifier.classify_from_url(image_reference)
+    else:
+        full_path = _resolve_safe_image_path(image_reference)
+        result = classifier.classify_from_path(full_path)
+
+    # Store in cache
+    if db is not None:
+        try:
+            cache_entry = ClassificationCache(
+                image_reference=image_reference,
+                vehicle_type=result.vehicle_type,
+                imagenet_class=result.imagenet_class,
+                confidence=result.confidence,
+                is_vehicle=result.is_vehicle,
+            )
+            db.add(cache_entry)
+            db.commit()
+        except Exception as exc:
+            db.rollback()
+            logger.warning("Nie udalo sie zapisac cache dla %s: %s", image_reference, exc)
+
+    return result
+
+
+def _resolve_safe_image_path(image_reference: str) -> Path:
+    """Resolve image reference to a safe local path (no path traversal)."""
+    filename = Path(image_reference).name
+    candidates = [
+        settings.project_root / image_reference,
+        settings.images_dir / filename,
+    ]
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        allowed_dirs = (settings.project_root.resolve(), settings.images_dir.resolve())
+        if resolved.exists() and any(str(resolved).startswith(str(d)) for d in allowed_dirs):
+            return resolved
+    raise FileNotFoundError(f"Nie znaleziono pliku: {image_reference}")
 
 
 def _to_classify_response(result: ClassificationResult) -> ClassifyResponse:

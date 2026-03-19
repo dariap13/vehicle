@@ -1,4 +1,15 @@
-"""Konfiguracja SQLAlchemy i lifecycle bazy danych."""
+"""Konfiguracja SQLAlchemy i lifecycle bazy danych.
+
+Uproszczenia:
+- SQLite zamiast PostgreSQL — zero konfiguracji, idealne do demo. W produkcji
+  PostgreSQL dałby pelne wsparcie Unicode (COLLATE, LOWER z polskimi znakami),
+  lepszą współbieznosc i skalowalnosc.
+- Brak migracji (Alembic) — schemat tworzony przez create_all() przy starcie.
+  W produkcji Alembic zapewnia wersjonowanie schematu i bezpieczne migracje.
+- Globalne singletony (_engine, _session_factory) zamiast dependency injection.
+  Wystarcza do jednoinstancyjnego demo, ale w wiekszym systemie lepiej
+  uzyc fabryki z kontenerem DI.
+"""
 
 from __future__ import annotations
 

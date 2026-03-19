@@ -1,4 +1,14 @@
-"""Seed danych przykładowych zgodnych z treścią zadania."""
+"""Seed danych przykładowych zgodnych z treścią zadania.
+
+Uproszczenia:
+- Dane seedowane hardcoded w kodzie. W produkcji: fixtures z plikow JSON/YAML
+  lub migracje Alembic z danymi poczatkowymi.
+- Nazwy wlascicieli i miast w ASCII (bez polskich diakrytykow) z powodu
+  ograniczen SQLite (brak Unicode-aware COLLATE NOCASE / LOWER).
+  PostgreSQL rozwiazuje ten problem natywnie.
+- Obrazy pobierane z Wikimedia Commons — w produkcji: dedykowany storage
+  (S3/GCS) z CDN i fallbackiem.
+"""
 
 from __future__ import annotations
 

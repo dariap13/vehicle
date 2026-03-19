@@ -1,4 +1,11 @@
-"""Konfiguracja aplikacji oparta o zmienne środowiskowe."""
+"""Konfiguracja aplikacji oparta o zmienne środowiskowe.
+
+Uproszczenia:
+- Konfiguracja przez dataclass + dotenv. W wiekszym projekcie warto uzyc
+  pydantic-settings z walidacja typow i zagniezdzona konfiguracja.
+- Provider defaults hardcoded w kodzie. W produkcji: plik konfiguracyjny
+  (YAML/TOML) z profilami srodowiskowymi (dev/staging/prod).
+"""
 
 from __future__ import annotations
 
@@ -100,7 +107,7 @@ class Settings:
         )
         self.llm_site_url = self._env_value(
             "LLM_SITE_URL",
-            "http://localhost:8501",
+            "http://localhost:8000",
             dotenv_overrides,
         )
         self.llm_app_name = self._env_value(

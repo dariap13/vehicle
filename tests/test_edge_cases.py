@@ -1,9 +1,22 @@
 """Testy edge-case: SQL injection, puste dane, nieznane pytania, paginacja, klasyfikator."""
 
+import pytest
+
 from app.agent.sql_agent import SQLAgent, get_agent
+from app.api.routes import _resolve_safe_image_path
 from app.classifier.vehicle_classifier import map_imagenet_label
 
-# ── SQL safety ──
+# ── Path traversal ──
+
+
+def test_path_traversal_blocked(test_environment):
+    with pytest.raises(FileNotFoundError):
+        _resolve_safe_image_path("../../../../etc/passwd")
+
+
+def test_absolute_path_blocked(test_environment):
+    with pytest.raises(FileNotFoundError):
+        _resolve_safe_image_path("/etc/passwd")
 
 
 def test_sql_injection_blocked():
@@ -165,7 +178,40 @@ def test_vehicles_pagination_negative_offset(client):
     assert response.status_code == 422
 
 
+# ── API: szczegoly pojazdu ──
+
+
+def test_get_vehicle_by_id(client):
+    response = client.get("/api/vehicles/1")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["vehicle_id"] == 1
+    assert "brand" in data
+    assert "images" in data
+
+
+def test_get_vehicle_not_found(client):
+    response = client.get("/api/vehicles/999")
+    assert response.status_code == 404
+
+
 # ── API: klasyfikacja edge cases ──
+
+
+def test_classify_url_missing_url(client):
+    response = client.post("/api/classify", json={"image_url": ""})
+    assert response.status_code == 400
+
+
+def test_classify_url_returns_classification(client):
+    response = client.post(
+        "/api/classify", json={"image_url": "http://example.com/car.jpg"}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "vehicle_type" in data
+    assert "confidence" in data
+    assert "is_vehicle" in data
 
 
 def test_classify_empty_file(client):

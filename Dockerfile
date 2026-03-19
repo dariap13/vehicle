@@ -21,6 +21,6 @@ COPY .env.example ./
 RUN mkdir -p ./images ./data
 RUN python -m app.download_images || echo "Zdjecia zostana pobrane przy pierwszym uruchomieniu"
 
-EXPOSE 8000 8501
+EXPOSE 8000
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,4 +1,14 @@
-"""Klasyfikacja pojazdów na bazie pretrained MobileNetV2."""
+"""Klasyfikacja pojazdów na bazie pretrained MobileNetV2.
+
+Uproszczenia:
+- Uzywam ogolnego MobileNetV2 (ImageNet) zamiast modelu fine-tunowanego na zbiorze
+  pojazdow (np. Stanford Cars). Dedykowany model dałby dokladniejsze typy
+  (sedan vs SUV vs pickup), ale wymaga dodatkowego treningu.
+- Mapowanie etykiet ImageNet -> typ pojazdu oparte na slownikach keyword.
+  W produkcji lepiej: hierarchiczna taksonomia lub osobny klasyfikator multi-label.
+- Brak obslugi GPU — MobileNetV2 jest na tyle lekki, ze CPU wystarcza do demo.
+  Przy wiekszym ruchu warto dodac CUDA/MPS i batching.
+"""
 
 from __future__ import annotations
 

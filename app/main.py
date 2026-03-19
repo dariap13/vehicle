@@ -21,7 +21,7 @@ def _configure_logging() -> None:
     level = getattr(logging, settings.log_level, logging.INFO)
     logging.basicConfig(
         level=level,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        format='{"time":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}',
         force=True,
     )
 

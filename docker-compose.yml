@@ -1,5 +1,5 @@
 services:
-  backend:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,20 +16,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8501:8501"
-    environment:
-      - API_URL=http://backend:8000
-    command: ["streamlit", "run", "frontend/app.py", "--server.port", "8501", "--server.address", "0.0.0.0", "--browser.gatherUsageStats", "false"]
-    depends_on:
-      backend:
-        condition: service_healthy
     restart: unless-stopped
 
 volumes:

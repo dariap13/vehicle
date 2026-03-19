@@ -22,7 +22,8 @@ def download_sample_images() -> list[Path]:
     settings.images_dir.mkdir(parents=True, exist_ok=True)
 
     downloaded: list[Path] = []
-    placeholder_manifest: dict[str, int] = {}
+    placeholder_manifest: dict[str, int] = _read_existing_manifest()
+    manifest_changed = False
     for vehicle_id, image in SAMPLE_IMAGE_SOURCES.items():
         target_path = settings.images_dir / image["filename"]
         if target_path.exists():
@@ -35,19 +36,34 @@ def download_sample_images() -> list[Path]:
             target_path.write_bytes(response.content)
             downloaded.append(target_path)
             logger.info("Pobrano obraz dla vehicle_id=%s do %s", vehicle_id, target_path)
+            if target_path.name in placeholder_manifest:
+                del placeholder_manifest[target_path.name]
+                manifest_changed = True
         except Exception as exc:
             logger.warning("Nie udało się pobrać %s: %s", image["remote_url"], exc)
             _create_placeholder_image(vehicle_id, target_path)
             downloaded.append(target_path)
             placeholder_manifest[target_path.name] = vehicle_id
+            manifest_changed = True
             logger.info(
                 "Utworzono lokalny placeholder dla vehicle_id=%s w %s",
                 vehicle_id,
                 target_path,
             )
 
-    _write_placeholder_manifest(placeholder_manifest)
+    if manifest_changed:
+        _write_placeholder_manifest(placeholder_manifest)
     return downloaded
+
+
+def _read_existing_manifest() -> dict[str, int]:
+    manifest_path = settings.images_dir / PLACEHOLDER_MANIFEST_FILENAME
+    if not manifest_path.exists():
+        return {}
+    try:
+        return json.loads(manifest_path.read_text())
+    except Exception:
+        return {}
 
 
 def _write_placeholder_manifest(placeholder_manifest: dict[str, int]) -> None:

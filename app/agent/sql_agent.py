@@ -1,4 +1,16 @@
-"""Agent tłumaczący pytania natural language na bezpieczne SQL."""
+"""Agent tłumaczący pytania natural language na bezpieczne SQL.
+
+Uproszczenia:
+- Tryb regułowy (fallback) oparty o pattern matching — pokrywa najczestsze wzorce
+  pytan z zadania, ale nie obsluguje dowolnych zapytan. W produkcji: fine-tuning
+  LLM na domenowych przykladach lub few-shot prompting z wiekszym bankiem pytan.
+- Walidacja SQL ograniczona do blacklisty slow kluczowych. W produkcji lepiej:
+  parsowanie AST zapytania (np. sqlglot) i whitelisting dozwolonych operacji.
+- Brak historii konwersacji — kazde pytanie traktowane niezaleznie.
+  Mozna dodac kontekst sesji dla pytan wieloetapowych.
+- Prompt systemowy zawiera hardcoded schemat bazy. W produkcji lepiej generowac
+  go dynamicznie z metadanych SQLAlchemy (inspection).
+"""
 
 from __future__ import annotations
 
@@ -115,7 +127,7 @@ class SQLAgent:
 
         default_headers: dict[str, str] = {}
         if self._provider == "openrouter":
-            default_headers["HTTP-Referer"] = settings.llm_site_url or "http://localhost:8501"
+            default_headers["HTTP-Referer"] = settings.llm_site_url or "http://localhost:8000"
             default_headers["X-Title"] = settings.llm_app_name
 
         return OpenAI(

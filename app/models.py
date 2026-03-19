@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import Date, ForeignKey, Integer, Numeric, String
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -72,3 +72,15 @@ class VehicleImage(Base):
     image_url: Mapped[str] = mapped_column(String(1000), nullable=False)
 
     vehicle: Mapped[Vehicle] = relationship(back_populates="images")
+
+
+class ClassificationCache(Base):
+    __tablename__ = "classification_cache"
+
+    cache_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    image_reference: Mapped[str] = mapped_column(String(1000), unique=True, nullable=False)
+    vehicle_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    imagenet_class: Mapped[str] = mapped_column(String(200), nullable=False)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False)
+    is_vehicle: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
