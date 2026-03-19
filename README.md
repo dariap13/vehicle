@@ -1,68 +1,68 @@
 # Vehicle AI Agent
 
-Aplikacja realizuje pełny przeplyw wymagany w zadaniu:
-- klasyfikuje obrazy pojazdow przy pomocy pretrained MobileNetV2,
-- przyjmuje pytania w jezyku naturalnym i zamienia je na SQL,
+Aplikacja realizuje pełny przepływ wymagany w zadaniu rekrutacyjnym:
+- klasyfikuje obrazy pojazdów przy pomocy pretrenowanego MobileNetV2,
+- przyjmuje pytania w języku naturalnym i zamienia je na SQL,
 - wykonuje zapytanie na bazie SQLite z 4 tabelami,
-- dla kazdego zwroconego pojazdu dolacza wynik klasyfikacji jako dodatkowe kolumny,
+- dla każdego zwróconego pojazdu dołącza wynik klasyfikacji jako dodatkowe kolumny,
 - wystawia REST API i frontend webowy.
 
 ## Architektura
 
 ```text
-Frontend (HTML) -> FastAPI -> SQLAlchemy/SQLite
-                          -> MobileNetV2 (torchvision)
-                          -> Agent NL->SQL (OpenAI-compatible LLM + deterministic fallback)
+Frontend (HTML) → FastAPI → SQLAlchemy/SQLite
+                         → MobileNetV2 (torchvision)
+                         → Agent NL→SQL (OpenAI-compatible LLM + deterministyczny fallback)
 ```
 
-Warstwa LLM jest opcjonalna. Backend obsluguje dostawcow kompatybilnych z klientem OpenAI, wiec mozna podpiac:
+Warstwa LLM jest opcjonalna. Backend obsługuje dostawców kompatybilnych z klientem OpenAI, więc można podpiąć:
 - `OpenAI`
 - `Groq`
 - `OpenRouter`
 - inny endpoint OpenAI-compatible przez `LLM_BASE_URL`
 
-Bez klucza projekt nadal dziala lokalnie dzieki bezpiecznemu fallbackowi opartemu o reguly.
+Bez klucza projekt nadal działa lokalnie dzięki bezpiecznemu fallbackowi opartemu o reguły.
 
 ## Wymagania
 
 - Python 3.11+
 - `uv` lub `pip`
-- Docker opcjonalnie
+- Docker (opcjonalnie)
 
 ## Szybki start
 
 ### Lokalnie
 
 ```bash
-make setup          # instalacja zaleznosci
+make setup          # instalacja zależności
 make api            # uruchom backend na http://localhost:8000
 ```
 
-Lub recznie:
+Lub ręcznie:
 
 ```bash
 uv sync --extra dev
 uv run uvicorn app.main:app --reload --port 8000
 ```
 
-Baza danych seeduje sie automatycznie przy starcie. Frontend dostepny pod http://localhost:8000.
+Baza danych seeduje się automatycznie przy starcie. Frontend dostępny pod http://localhost:8000.
 
 ### Zmienna `.env`
 
-Projekt nie wymaga `.env`, ale mozna skopiowac przyklad:
+Projekt nie wymaga `.env`, ale można skopiować przykład:
 
 ```bash
 cp .env.example .env
 ```
 
-Najwazniejsze pola:
-- `LLM_PROVIDER` - np. `groq`, `openai`, `openrouter`
-- `LLM_API_KEY` - klucz do wybranego providera
-- `LLM_MODEL` - model dla wybranego providera
-- `LLM_BASE_URL` - endpoint API; dla Groq i OpenRouter ma sensowne domyslne wartosci
-- `ENABLE_LLM_AGENT` - `true` lub `false`
+Najważniejsze pola:
+- `LLM_PROVIDER` – np. `groq`, `openai`, `openrouter`
+- `LLM_API_KEY` – klucz do wybranego providera
+- `LLM_MODEL` – model dla wybranego providera
+- `LLM_BASE_URL` – endpoint API; dla Groq i OpenRouter ma sensowne domyślne wartości
+- `ENABLE_LLM_AGENT` – `true` lub `false`
 
-Przykladowy darmowy setup dla Groq:
+Przykładowy darmowy setup dla Groq:
 
 ```env
 LLM_PROVIDER=groq
@@ -72,7 +72,7 @@ LLM_BASE_URL=https://api.groq.com/openai/v1
 ENABLE_LLM_AGENT=true
 ```
 
-Przykladowy setup dla OpenRouter free router:
+Przykładowy setup dla OpenRouter:
 
 ```env
 LLM_PROVIDER=openrouter
@@ -103,9 +103,9 @@ Seed obejmuje wymagane tabele:
 - `transaction_history`
 - `vehicle_images`
 
-Jesli zewnetrzne URL-e obrazow sa chwilowo blokowane, aplikacja tworzy lokalne placeholdery dla seeded demo i zachowuje stabilne wyniki dla danych katalogowych. Dzięki temu projekt nadal uruchamia sie lokalnie bez recznego ratowania assetow.
+Jeśli zewnętrzne URL-e obrazów są chwilowo blokowane, aplikacja tworzy lokalne placeholdery i zachowuje stabilne wyniki klasyfikacji. Projekt uruchamia się lokalnie bez ręcznego ratowania assetów.
 
-Przykladowe dane odpowiadaja tresci zadania rekrutacyjnego, w tym:
+Przykładowe dane odpowiadają treści zadania rekrutacyjnego:
 - Toyota Corolla
 - BMW X5
 - MAN TGS
@@ -117,17 +117,17 @@ Przykladowe dane odpowiadaja tresci zadania rekrutacyjnego, w tym:
 | Metoda | Endpoint | Opis |
 |--------|----------|------|
 | `POST` | `/api/classify` | Klasyfikuj obraz z URL |
-| `POST` | `/api/classify/upload` | Klasyfikuj przeslany plik |
-| `POST` | `/api/ask` | Pytanie natural language -> SQL -> wynik + klasyfikacja |
-| `GET` | `/api/vehicles` | Lista pojazdow |
-| `GET` | `/api/health` | Status uslugi |
+| `POST` | `/api/classify/upload` | Klasyfikuj przesłany plik |
+| `POST` | `/api/ask` | Pytanie NL → SQL → wynik + klasyfikacja |
+| `GET` | `/api/vehicles` | Lista pojazdów (z paginacją) |
+| `GET` | `/api/health` | Status usługi |
 | `GET` | `/assets/images/{filename}` | Lokalne obrazki seeded demo |
 
 W odpowiedzi `/api/ask` SQL jest jawnie zwracany w JSON oraz logowany po stronie backendu.
 
-## Testowanie
+## Jak testować
 
-### Testy automatyczne (pytest)
+### 1. Testy automatyczne (pytest)
 
 ```bash
 make test
@@ -135,16 +135,16 @@ make test
 uv run pytest -v
 ```
 
-34 testy pokrywaja:
-- mapowanie klas ImageNet na typy pojazdow,
-- dzialanie agenta NL->SQL (rozne wzorce pytan),
-- integracje endpointow API (health, classify, ask),
+34 testy pokrywają:
+- mapowanie klas ImageNet na typy pojazdów,
+- działanie agenta NL→SQL (różne wzorce pytań),
+- integrację endpointów API (health, classify, ask),
 - edge-case'y: SQL injection, puste pytania, nieznane pytania, walidacja danych,
-- paginacje endpointu `/api/vehicles`.
+- paginację endpointu `/api/vehicles`.
 
-Testy nie wymagaja klucza LLM — uzywaja trybu regul i dummy classifiera.
+Testy nie wymagają klucza LLM — używają trybu reguł i dummy classifiera.
 
-### Reczne testowanie (curl)
+### 2. Ręczne testowanie (curl)
 
 Uruchom backend:
 
@@ -157,7 +157,7 @@ Pytanie do agenta:
 ```bash
 curl -s -X POST http://localhost:8000/api/ask \
   -H "Content-Type: application/json" \
-  -d '{"question":"co ma Kowalski?"}' | python3 -m json.tool
+  -d '{"question":"Co ma Kowalski?"}' | python3 -m json.tool
 ```
 
 Klasyfikacja obrazu z URL:
@@ -175,7 +175,7 @@ curl -s -X POST http://localhost:8000/api/classify/upload \
   -F "file=@zdjecie.jpg" | python3 -m json.tool
 ```
 
-Lista pojazdow (z paginacja):
+Lista pojazdów (z paginacją):
 
 ```bash
 curl -s "http://localhost:8000/api/vehicles?limit=2&offset=0" | python3 -m json.tool
@@ -187,55 +187,36 @@ Health check:
 curl -s http://localhost:8000/api/health | python3 -m json.tool
 ```
 
-### Testowanie przez przegladarke
+### 3. Testowanie przez przeglądarkę
 
 ```bash
 make api
 ```
 
-- Frontend: http://localhost:8000
+- Frontend: http://localhost:8000 — zakładki Agent / Klasyfikator / Flota
 - Swagger UI (interaktywne API): http://localhost:8000/docs
 
-### Testowanie przez Docker
+### 4. Testowanie przez Docker
 
 ```bash
 docker compose up --build
 ```
 
-Frontend: http://localhost:8000, API docs: http://localhost:8000/docs
+- Frontend: http://localhost:8000
+- API docs: http://localhost:8000/docs
 
-## Finalna checklista przed wysylka
-
-1. Uruchom testy:
-
-```bash
-uv run pytest -v
-```
-
-2. Zweryfikuj lint:
+### 5. Lint
 
 ```bash
 uv run ruff check
 ```
-
-3. Szybki smoke test API:
-
-```bash
-curl -s http://localhost:8000/api/health | python3 -m json.tool
-curl -s -X POST http://localhost:8000/api/ask -H "Content-Type: application/json" -d '{"question":"co ma Kowalski?"}' | python3 -m json.tool
-```
-
-4. Upewnij sie, ze repo nie zawiera lokalnych artefaktow:
-- brak `.env` w commitach,
-- brak plikow tymczasowych i duplikatow,
-- czysty `git status`.
 
 ## Struktura projektu
 
 ```text
 app/
   api/routes.py            # endpointy REST
-  agent/sql_agent.py       # agent NL->SQL (LLM + fallback)
+  agent/sql_agent.py       # agent NL→SQL (LLM + fallback)
   classifier/              # klasyfikator MobileNetV2
   config.py                # konfiguracja (.env)
   database.py              # SQLAlchemy setup
@@ -244,7 +225,7 @@ app/
   seed.py                  # dane startowe
   main.py                  # FastAPI app
 frontend/
-  index.html               # frontend webowy
+  index.html               # frontend webowy (dark theme)
 tests/                     # pytest (34 testy)
 Dockerfile
 docker-compose.yml

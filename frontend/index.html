@@ -1,341 +1,687 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent AI Pojazdow</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0a0c10;--surface:#13161c;--surface2:#1a1e26;
-  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
-  --text:#e2e8f0;--text2:#7a8a9e;--text3:#4a5568;
-  --accent:#6366f1;--accent2:#818cf8;
-  --green:#34d399;--amber:#fbbf24;--red:#f87171;--cyan:#22d3ee;
-  --r:12px;
-}
-html{font-size:14px}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-::selection{background:var(--accent);color:#fff}
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-thumb{background:#2a2e38;border-radius:3px}
-
-.app{max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem}
-
-/* Header */
-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
-header h1{font-size:1.3rem;font-weight:800;letter-spacing:-.03em}
-.status{display:flex;gap:.4rem;align-items:center}
-.dot{width:7px;height:7px;border-radius:50%}
-.dot.on{background:var(--green);box-shadow:0 0 6px rgba(52,211,153,.4)}
-.dot.off{background:var(--red)}
-.status span{font-size:.75rem;color:var(--text2);font-weight:600}
-
-/* Tabs */
-.tabs{display:flex;gap:2px;margin-bottom:1.5rem;background:var(--surface);border-radius:var(--r);padding:3px;border:1px solid var(--border)}
-.tab{flex:1;padding:.55rem;border-radius:9px;font-size:.8rem;font-weight:700;text-align:center;cursor:pointer;color:var(--text3);border:none;background:none;transition:.2s}
-.tab:hover{color:var(--text2)}
-.tab.active{color:#fff;background:var(--accent)}
-.tab-content{display:none;animation:fade .25s ease}
-.tab-content.active{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-/* Panel */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;margin-bottom:.75rem}
-.label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--accent2);margin-bottom:.5rem}
-
-/* Grid */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
-@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
-
-/* Metric */
-.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.7rem;text-align:center}
-.metric b{display:block;font-size:1.5rem;color:#fff;letter-spacing:-.02em}
-.metric small{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
-
-/* Input */
-textarea,input[type=url],input[type=text],select{width:100%;padding:.6rem .8rem;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:.85rem}
-textarea{resize:vertical}
-textarea:focus,input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.15)}
-textarea{min-height:80px}
-
-/* Buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;padding:.55rem 1rem;border-radius:8px;font-size:.8rem;font-weight:700;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;transition:.15s}
-.btn:hover{background:#242830}
-.btn:active{transform:scale(.97)}
-.btn-p{background:var(--accent);border:none;color:#fff}
-.btn-p:hover{filter:brightness(1.1)}
-.btn:disabled{opacity:.35;pointer-events:none}
-.btn-s{padding:.4rem .7rem;font-size:.75rem}
-
-/* Code */
-.code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.8rem;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--cyan);white-space:pre-wrap;overflow:auto;max-height:250px;line-height:1.6}
-
-/* Table */
-.tw{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
-table{width:100%;border-collapse:collapse;font-size:.78rem}
-th{padding:.5rem .6rem;text-align:left;font-weight:700;color:var(--text2);font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);border-bottom:1px solid var(--border)}
-td{padding:.45rem .6rem;border-bottom:1px solid var(--border);color:var(--text)}
-tr:last-child td{border:none}
-tr:hover td{background:rgba(255,255,255,.02)}
-
-/* Cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:.2s}
-.card:hover{border-color:var(--border2);transform:translateY(-1px)}
-.card img{width:100%;height:150px;object-fit:cover;display:block;background:var(--bg)}
-.card-b{padding:.8rem}
-.card-brand{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2)}
-.card-model{font-size:.95rem;font-weight:800;color:#fff;margin:.1rem 0 .35rem}
-.card-meta{font-size:.75rem;color:var(--text2);line-height:1.5}
-.badge{display:inline-block;padding:.15rem .5rem;border-radius:99px;font-size:.65rem;font-weight:700}
-.badge-g{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.2)}
-.badge-a{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
-
-/* Examples */
-.ex{display:block;width:100%;text-align:left;padding:.45rem .7rem;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:.78rem;cursor:pointer;transition:.15s;font-family:inherit;margin-bottom:.3rem}
-.ex:hover{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.2);color:var(--text)}
-
-/* Upload */
-.upload{border:2px dashed var(--border2);border-radius:var(--r);padding:1.5rem;text-align:center;color:var(--text3);cursor:pointer;transition:.2s;position:relative}
-.upload:hover{border-color:var(--accent);color:var(--text2)}
-.upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
-
-/* Misc */
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:spin .5s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:1.5rem;color:var(--text2);font-size:.8rem}
-.alert{padding:.6rem .8rem;border-radius:8px;font-size:.8rem;margin-bottom:.5rem}
-.alert-e{background:rgba(248,113,113,.08);color:var(--red);border:1px solid rgba(248,113,113,.15)}
-.alert-s{background:rgba(52,211,153,.08);color:var(--green);border:1px solid rgba(52,211,153,.15)}
-.alert-i{background:rgba(99,102,241,.06);color:var(--accent2);border:1px solid rgba(99,102,241,.1)}
-.exp{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.8rem;font-size:.82rem;color:var(--text2);line-height:1.55;white-space:pre-wrap}
-.no-img{height:150px;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text3);font-size:.75rem}
-.cls-r{display:flex;gap:1rem;margin-top:.75rem}
-.cls-r img{width:220px;height:160px;object-fit:cover;border-radius:var(--r);border:1px solid var(--border)}
-@media(max-width:640px){.cls-r{flex-direction:column}.cls-r img{width:100%}}
-.row-flex{display:flex;gap:.5rem}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle AI Agent</title>
+  <style>
+    :root{
+      --bg:#0f1117;
+      --card:#1a1d27;
+      --card2:#22262f;
+      --text:#e2e8f0;
+      --muted:#8892a4;
+      --line:rgba(255,255,255,.08);
+      --line2:rgba(255,255,255,.12);
+      --primary:#6366f1;
+      --primary-2:#818cf8;
+      --danger:#f87171;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --cyan:#22d3ee;
+      --radius:12px;
+      --shadow:0 8px 24px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.45;
+    }
+    ::selection{background:var(--primary);color:#fff}
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+      padding:24px 16px 40px;
+    }
+    .top{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+    h1{font-size:1.35rem;margin:0;color:#fff}
+    .status{
+      display:flex;align-items:center;gap:6px;
+      font-size:.82rem;
+      color:var(--muted);
+    }
+    .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .dot.on{background:var(--ok);box-shadow:0 0 6px rgba(52,211,153,.5)}
+    .dot.off{background:var(--danger);box-shadow:0 0 6px rgba(248,113,113,.5)}
+    .tabs{
+      display:flex;
+      gap:4px;
+      margin-bottom:14px;
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:4px;
+      border:1px solid var(--line);
+    }
+    .tab{
+      flex:1;
+      border:none;
+      background:none;
+      color:var(--muted);
+      padding:8px 12px;
+      border-radius:9px;
+      cursor:pointer;
+      font-weight:600;
+      font-size:.9rem;
+      text-align:center;
+      transition:.15s;
+    }
+    .tab:hover{color:var(--text)}
+    .tab.active{
+      background:var(--primary);
+      color:#fff;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      margin-bottom:12px;
+    }
+    .label{
+      color:var(--primary-2);
+      font-size:.72rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      margin-bottom:6px;
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row > *{flex:1 1 220px}
+    textarea,input,select{
+      width:100%;
+      border:1px solid var(--line2);
+      border-radius:10px;
+      padding:10px;
+      font:inherit;
+      background:var(--bg);
+      color:var(--text);
+    }
+    textarea:focus,input:focus,select:focus{
+      outline:none;
+      border-color:var(--primary);
+      box-shadow:0 0 0 2px rgba(99,102,241,.2);
+    }
+    textarea{min-height:88px;resize:vertical}
+    .btn{
+      border:1px solid var(--line2);
+      background:var(--card2);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      transition:.15s;
+    }
+    .btn:hover{background:#2a2e3a}
+    .btn:active{transform:scale(.97)}
+    .btn.primary{
+      background:var(--primary);
+      color:#fff;
+      border-color:var(--primary);
+    }
+    .btn.primary:hover{filter:brightness(1.1)}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .examples{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+    .pill{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius:999px;
+      padding:8px 12px;
+      text-align:left;
+      cursor:pointer;
+      font-size:.85rem;
+      color:var(--muted);
+      transition:.15s;
+      font-family:inherit;
+    }
+    .pill:hover{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.25);color:var(--text)}
+    .grid3{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:12px;
+    }
+    @media (max-width:880px){.grid3{grid-template-columns:1fr}}
+    .metric{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px;
+      background:var(--card);
+      text-align:center;
+    }
+    .metric b{font-size:1.3rem;display:block;color:#fff}
+    .metric span{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .sql{
+      background:var(--bg);
+      color:var(--cyan);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px;
+      overflow:auto;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+      font-size:.82rem;
+      white-space:pre-wrap;
+      line-height:1.5;
+    }
+    .alert{
+      border-radius:10px;
+      border:1px solid;
+      padding:9px 10px;
+      font-size:.9rem;
+      margin-bottom:8px;
+    }
+    .alert.error{color:var(--danger);border-color:rgba(248,113,113,.2);background:rgba(248,113,113,.06)}
+    .alert.ok{color:var(--ok);border-color:rgba(52,211,153,.2);background:rgba(52,211,153,.06)}
+    .alert.info{color:var(--primary-2);border-color:rgba(99,102,241,.15);background:rgba(99,102,241,.06)}
+    .hide{display:none}
+    .table-wrap{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:10px;
+    }
+    table{border-collapse:collapse;width:100%;font-size:.84rem}
+    th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{background:var(--card2);font-size:.72rem;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .vehicles{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+      gap:10px;
+    }
+    .vehicle{
+      border:1px solid var(--line);
+      border-radius:10px;
+      overflow:hidden;
+      background:var(--card);
+      transition:.15s;
+    }
+    .vehicle:hover{border-color:var(--line2);transform:translateY(-1px)}
+    .vehicle img{
+      width:100%;
+      height:140px;
+      object-fit:cover;
+      display:block;
+      background:var(--bg);
+    }
+    .vehicle .b{padding:10px}
+    .vehicle b{color:#fff}
+    .muted{color:var(--muted)}
+    .right{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;align-items:center}
+    .page-info{font-size:.82rem;color:var(--muted)}
+    .badge{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:99px;
+      font-size:.72rem;
+      font-weight:700;
+    }
+    .badge-ok{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.2)}
+    .badge-warn{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.2)}
+  </style>
 </head>
 <body>
-<div class="app">
-
-  <header>
-    <h1>Agent AI Pojazdow</h1>
-    <div class="status" id="status"><span class="dot"></span><span>...</span></div>
-  </header>
-
-  <nav class="tabs">
-    <button class="tab active" data-tab="query">Agent</button>
-    <button class="tab" data-tab="classify">Klasyfikator</button>
-    <button class="tab" data-tab="fleet">Flota</button>
-  </nav>
-
-  <!-- Agent -->
-  <div class="tab-content active" id="tab-query">
-    <div class="panel">
-      <textarea id="qi" placeholder="Zadaj pytanie, np. co ma Kowalski?">co ma Kowalski?</textarea>
-      <div class="row-flex" style="margin-top:.5rem">
-        <button class="btn btn-p" id="run" style="flex:1">Zapytaj</button>
-        <button class="btn" id="clear">Wyczysc</button>
-      </div>
+  <div class="container">
+    <div class="top">
+      <h1>Vehicle AI Agent</h1>
+      <div class="status" id="healthStatus"><span class="dot"></span> Łączenie...</div>
     </div>
-    <div class="label">Przyklady</div>
-    <div id="examples" style="margin-bottom:.75rem"></div>
-    <div id="qr"></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="agent">Agent</button>
+      <button class="tab" data-tab="classifier">Klasyfikator</button>
+      <button class="tab" data-tab="fleet">Flota</button>
+    </div>
+
+    <section id="tab-agent">
+      <div class="card">
+        <div class="label">Pytanie do agenta</div>
+        <textarea id="questionInput" placeholder="np. Co ma Kowalski?">Co ma Kowalski?</textarea>
+        <div class="right" style="margin-top:10px">
+          <button class="btn" id="clearAgent">Wyczyść</button>
+          <button class="btn primary" id="runAgent">Uruchom</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Przykładowe pytania</div>
+        <div class="examples" id="examples"></div>
+      </div>
+
+      <div id="agentResult"></div>
+    </section>
+
+    <section id="tab-classifier" class="hide">
+      <div class="card">
+        <div class="row">
+          <div>
+            <div class="label">URL obrazu</div>
+            <input id="urlInput" type="url" placeholder="https://...">
+            <div class="right" style="margin-top:10px">
+              <button class="btn primary" id="runUrlClassify">Klasyfikuj URL</button>
+            </div>
+          </div>
+          <div>
+            <div class="label">Plik obrazu</div>
+            <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp">
+            <div class="right" style="margin-top:10px">
+              <button class="btn" id="runFileClassify" disabled>Klasyfikuj plik</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="classifyResult"></div>
+    </section>
+
+    <section id="tab-fleet" class="hide">
+      <div class="card">
+        <div class="row">
+          <div>
+            <div class="label">Szukaj</div>
+            <input id="fleetSearch" type="text" placeholder="Marka lub model...">
+          </div>
+          <div>
+            <div class="label">Status</div>
+            <select id="fleetStatus">
+              <option value="all">Wszystkie</option>
+              <option value="available">Dostępne</option>
+              <option value="sold">Sprzedane</option>
+            </select>
+          </div>
+          <div>
+            <div class="label">Sortowanie</div>
+            <select id="fleetSort">
+              <option value="brand_asc">Marka A–Z</option>
+              <option value="price_desc">Cena malejąco</option>
+              <option value="price_asc">Cena rosnąco</option>
+              <option value="year_desc">Rok malejąco</option>
+              <option value="year_asc">Rok rosnąco</option>
+            </select>
+          </div>
+        </div>
+        <div class="right" style="margin-top:10px">
+          <button class="btn" id="refreshFleet">Odśwież</button>
+        </div>
+      </div>
+
+      <div id="fleetMetrics" class="grid3"></div>
+      <div id="fleetView"></div>
+    </section>
   </div>
 
-  <!-- Klasyfikator -->
-  <div class="tab-content" id="tab-classify">
-    <div class="g2">
-      <div class="panel">
-        <div class="upload" id="uz">
-          <input type="file" id="fi" accept="image/jpeg,image/png,image/webp">
-          <div style="font-size:.85rem;font-weight:600" id="uz-t">Wgraj obraz</div>
-          <div style="font-size:.7rem;color:var(--text3);margin-top:.2rem">JPG, PNG, WebP</div>
-        </div>
-        <button class="btn btn-s" id="cf" style="width:100%;margin-top:.5rem" disabled>Klasyfikuj plik</button>
-      </div>
-      <div class="panel">
-        <input type="url" id="cu" placeholder="URL obrazu" style="margin-bottom:.5rem">
-        <button class="btn btn-s" id="cub" style="width:100%">Klasyfikuj URL</button>
-        <div class="label" style="margin-top:.75rem">Przykladowe obrazy</div>
-        <div id="samples"></div>
-      </div>
-    </div>
-    <div id="cr"></div>
-  </div>
+  <script>
+    const API = "";
+    const TIMEOUT_MS = 25000;
+    const PAGE_SIZE = 6;
 
-  <!-- Flota -->
-  <div class="tab-content" id="tab-fleet">
-    <div class="panel">
-      <div class="g3">
-        <div>
-          <div class="label">Szukaj</div>
-          <input type="text" id="fs" placeholder="np. BMW, Corolla, MAN">
-        </div>
-        <div>
-          <div class="label">Status</div>
-          <select id="fa">
-            <option value="all">Wszystkie</option>
-            <option value="available">Dostepne</option>
-            <option value="sold">Sprzedane</option>
-          </select>
-        </div>
-        <div>
-          <div class="label">Sortowanie</div>
-          <select id="fsort">
-            <option value="brand_asc">Marka A-Z</option>
-            <option value="price_desc">Cena malejaco</option>
-            <option value="price_asc">Cena rosnaco</option>
-            <option value="year_desc">Rok malejaco</option>
-            <option value="year_asc">Rok rosnaco</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div style="margin-bottom:.75rem">
-      <button class="btn btn-s" id="rf">Odswiez</button>
-    </div>
-    <div id="fm" class="g3" style="margin-bottom:.75rem"></div>
-    <div class="g3" id="fg"></div>
-  </div>
+    let fleetData = [];
+    let fleetOffset = 0;
+    let selectedFile = null;
 
-</div>
-<script>
-const A='',T=25000;
-const PAGE_SIZE=6;
-function e(s){if(s==null)return'';const d=document.createElement('div');d.textContent=String(s);return d.innerHTML}
-function price(v){if(v==null||v==='')return'-';try{return Number(v).toLocaleString('pl-PL')+' PLN'}catch{return String(v)}}
-function conf(v){return v==null?'-':(Number(v)*100).toFixed(1)+'%'}
-function img(r){if(!r)return null;if(r.startsWith('http'))return r;return A+'/assets/images/'+r.split('/').pop()}
-async function f(p,o={}){const c=new AbortController;const t=setTimeout(()=>c.abort(),T);try{const r=await fetch(A+p,{...o,signal:c.signal});clearTimeout(t);return r}catch(e){clearTimeout(t);throw e}}
-async function j(r){try{return await r.json()}catch{return{}}}
+    function esc(value){
+      if(value == null) return "";
+      const el = document.createElement("div");
+      el.textContent = String(value);
+      return el.innerHTML;
+    }
 
-// Tabs
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active');
-  if(t.dataset.tab==='fleet'&&!fl)loadFleet();
-}));
+    function formatPrice(v){
+      if(v == null || v === "") return "–";
+      try { return `${Number(v).toLocaleString("pl-PL")} PLN`; }
+      catch { return String(v); }
+    }
 
-// Health
-(async()=>{try{const r=await f('/api/health');const h=await r.json();const s=document.getElementById('status');
-  s.innerHTML=`<span class="dot ${h.status==='ok'?'on':'off'}"></span><span>${h.status==='ok'?'polaczony':'rozlaczony'}</span>`
-}catch{document.getElementById('status').innerHTML=`<span class="dot off"></span><span>rozlaczony</span>`}})();
+    function formatConfidence(v){
+      if(v == null) return "–";
+      return `${(Number(v) * 100).toFixed(1)}%`;
+    }
 
-// Examples
-const EX=['co ma Kowalski?','auta powyzej 100k','co kupiono w 2020?','do kogo poszlo BMW X5?','historia Corolli','ile aut dostepnych?'];
-const eg=document.getElementById('examples');
-EX.forEach(x=>{const b=document.createElement('button');b.className='ex';b.textContent=x;b.onclick=()=>{document.getElementById('qi').value=x};eg.appendChild(b)});
+    function imageUrl(ref){
+      if(!ref) return null;
+      if(ref.startsWith("http://") || ref.startsWith("https://")) return ref;
+      return `${API}/assets/images/${ref.split("/").pop()}`;
+    }
 
-// Query
-const run=document.getElementById('run'),clr=document.getElementById('clear'),qi=document.getElementById('qi'),qr=document.getElementById('qr');
-run.onclick=async()=>{const q=qi.value.trim();if(!q)return;run.disabled=true;
-  qr.innerHTML='<div class="loading"><span class="spinner"></span>Analizuje pytanie...</div>';
-  try{const r=await f('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
-    const d=await j(r);if(!r.ok)qr.innerHTML=err(d.detail||`HTTP ${r.status}`,d.sql_query);else if(d.error)qr.innerHTML=err(d.error,d.sql_query);else qr.innerHTML=ok(d);
-  }catch(x){qr.innerHTML=`<div class="alert alert-e">${e(x.message)}</div>`}run.disabled=false};
-clr.onclick=()=>{qr.innerHTML=''};
-qi.onkeydown=ev=>{if((ev.ctrlKey||ev.metaKey)&&ev.key==='Enter'){ev.preventDefault();run.click()}};
+    async function apiFetch(path, options = {}){
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      try{
+        const resp = await fetch(`${API}${path}`, {...options, signal: controller.signal});
+        clearTimeout(timer);
+        return resp;
+      }catch(err){
+        clearTimeout(timer);
+        throw err;
+      }
+    }
 
-function err(msg,sql){let h=`<div class="alert alert-e">${e(msg)}</div>`;if(sql)h+=`<div class="code">${e(sql)}</div>`;return h}
+    async function safeJson(resp){
+      try { return await resp.json(); }
+      catch { return {}; }
+    }
 
-function ok(d){
-  const rows=d.rows||[],cols=d.columns||[];let h='';
-  // SQL
-  h+=`<div class="g2" style="margin-bottom:.75rem"><div class="panel"><div class="label">Wygenerowany SQL</div><div class="code">${e(d.sql_query||'')}</div></div>`;
-  h+=`<div class="panel"><div class="label">Wyjasnienie</div><div class="exp">${e(d.explanation||'')}</div></div></div>`;
-  // Metrics
-  h+=`<div class="g3" style="margin-bottom:.75rem">
-    <div class="metric"><b>${rows.length}</b><small>Rekordy</small></div>
-    <div class="metric"><b>${cols.length}</b><small>Kolumny</small></div>
-    <div class="metric"><b>${rows.filter(r=>r.classification_vehicle_type).length}</b><small>Sklasyfikowane</small></div></div>`;
-  // Table
-  if(rows.length){
-    const dc=cols.length?cols:Object.keys(rows[0]||{});
-    h+=`<div class="tw"><table><thead><tr>${dc.map(c=>`<th>${e(c)}</th>`).join('')}</tr></thead><tbody>`;
-    rows.forEach(r=>{h+='<tr>';dc.forEach(c=>{let v=r[c];
-      if(c==='image_url'&&v){const u=img(v);v=u?`<img src="${e(u)}" style="height:32px;border-radius:4px" onerror="this.style.display='none'">`:''}
-      else if(c==='classification_confidence')v=conf(v);else if(c==='price')v=price(v);else v=e(v);
-      h+=`<td>${v}</td>`});h+='</tr>'});
-    h+='</tbody></table></div>';
-    // Preview cards
-    const pv=rows.filter(r=>r.brand&&r.model).slice(0,3);
-    if(pv.length){h+=`<div class="g3" style="margin-top:.75rem">`;pv.forEach(r=>{const u=img(r.image_url);
-      h+=`<div class="card">${u?`<img src="${e(u)}" onerror="this.outerHTML='<div class=no-img>-</div>'">`:'<div class="no-img">-</div>'}
-      <div class="card-b"><div class="card-brand">${e(r.brand)}</div><div class="card-model">${e(r.model)}</div>
-      <div class="card-meta">${e(r.year||'-')} &middot; ${price(r.price)}<br>${e(r.classification_vehicle_type||'-')} (${conf(r.classification_confidence)})</div></div></div>`});
-      h+='</div>'}
-  }else h+='<div class="alert alert-i">Brak wynikow.</div>';
-  return h;
-}
+    function switchTab(tab){
+      document.querySelectorAll(".tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+      document.querySelectorAll("section[id^='tab-']").forEach(sec => sec.classList.add("hide"));
+      document.getElementById(`tab-${tab}`).classList.remove("hide");
+      if(tab === "fleet" && fleetData.length === 0) loadFleet();
+    }
 
-// Classifier
-const fi=document.getElementById('fi'),cf=document.getElementById('cf'),cub=document.getElementById('cub'),cu=document.getElementById('cu'),cr=document.getElementById('cr');
-let sf=null;
-fi.onchange=()=>{sf=fi.files[0]||null;cf.disabled=!sf;if(sf)document.getElementById('uz-t').textContent=sf.name};
-cf.onclick=async()=>{if(!sf)return;cf.disabled=true;cr.innerHTML='<div class="loading"><span class="spinner"></span></div>';
-  try{const fd=new FormData;fd.append('file',sf);const r=await f('/api/classify/upload',{method:'POST',body:fd});
-    cr.innerHTML=cls(await j(r),URL.createObjectURL(sf))}catch(x){cr.innerHTML=`<div class="alert alert-e">${e(x.message)}</div>`}cf.disabled=false};
-cub.onclick=async()=>{const u=cu.value.trim();if(!u)return;cub.disabled=true;cr.innerHTML='<div class="loading"><span class="spinner"></span></div>';
-  try{const r=await f('/api/classify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_url:u})});
-    cr.innerHTML=cls(await j(r),u)}catch(x){cr.innerHTML=`<div class="alert alert-e">${e(x.message)}</div>`}cub.disabled=false};
-cu.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();cub.click()}};
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
 
-function cls(d,src){
-  if(d.detail)return`<div class="alert alert-e">${e(d.detail)}</div>`;
-  return`<div class="panel" style="margin-top:.75rem"><div class="cls-r">
-    <img src="${e(src)}" onerror="this.style.display='none'">
-    <div style="flex:1"><div class="g3" style="margin-bottom:.5rem">
-      <div class="metric"><b style="font-size:1.1rem">${e(d.vehicle_type)}</b><small>Typ</small></div>
-      <div class="metric"><b style="font-size:1.1rem">${conf(d.confidence)}</b><small>Pewnosc</small></div>
-      <div class="metric"><b style="font-size:.85rem">${e(d.imagenet_class)}</b><small>Klasa modelu</small></div></div>
-      <div class="alert ${d.is_vehicle?'alert-s':'alert-i'}">${d.is_vehicle?'Rozpoznano pojazd':'Nie rozpoznano pojazdu'}</div></div></div></div>`;
-}
+    async function loadHealth(){
+      const el = document.getElementById("healthStatus");
+      try{
+        const resp = await apiFetch("/api/health");
+        const data = await safeJson(resp);
+        if(resp.ok && data.status === "ok"){
+          el.innerHTML = `<span class="dot on"></span> Połączony`;
+        }else{
+          el.innerHTML = `<span class="dot off"></span> Problem z backendem`;
+        }
+      }catch{
+        el.innerHTML = `<span class="dot off"></span> Rozłączony`;
+      }
+    }
 
-// Samples
-(async()=>{try{const r=await f('/api/vehicles');const vs=await r.json();const g=document.getElementById('samples');
-  vs.slice(0,4).forEach(v=>{if(!v.images||!v.images.length)return;const u=img(v.images[0].image_url);if(!u)return;
-    const b=document.createElement('button');b.className='ex';b.textContent=v.brand+' '+v.model;b.onclick=()=>{cu.value=u};g.appendChild(b)});
-}catch{}})();
+    const EXAMPLES = [
+      "Co ma Kowalski?",
+      "Auta powyżej 100k",
+      "Co kupiono w 2020?",
+      "Do kogo poszło BMW X5?",
+      "Historia Corolli",
+      "Ile aut dostępnych?"
+    ];
+    const examplesEl = document.getElementById("examples");
+    EXAMPLES.forEach(example => {
+      const btn = document.createElement("button");
+      btn.className = "pill";
+      btn.textContent = example;
+      btn.onclick = () => { document.getElementById("questionInput").value = example; };
+      examplesEl.appendChild(btn);
+    });
 
-// Fleet
-let fl=false,fo=0,fv=[];
-const fs=document.getElementById('fs'),fa=document.getElementById('fa'),fsort=document.getElementById('fsort');
-async function loadFleet(){const g=document.getElementById('fg'),m=document.getElementById('fm');
-  g.innerHTML='<div class="loading" style="grid-column:1/-1"><span class="spinner"></span></div>';
-  try{const r=await f('/api/vehicles?limit=500&offset=0');fv=await r.json();fl=true;renderFleet()
-  }catch(x){g.innerHTML=`<div class="alert alert-e" style="grid-column:1/-1">${e(x.message)}</div>`}}
-function renderFleet(){const g=document.getElementById('fg'),m=document.getElementById('fm');
-  let vs=[...fv],q=(fs.value||'').trim().toLowerCase(),avf=fa.value,sv=fsort.value;
-  if(q)vs=vs.filter(v=>`${v.brand||''} ${v.model||''}`.toLowerCase().includes(q));
-  if(avf!=='all')vs=vs.filter(v=>(v.availability||'')===avf);
-  if(sv==='brand_asc')vs.sort((a,b)=>`${a.brand||''} ${a.model||''}`.localeCompare(`${b.brand||''} ${b.model||''}`,'pl'));
-  if(sv==='price_desc')vs.sort((a,b)=>Number(b.price||0)-Number(a.price||0));
-  if(sv==='price_asc')vs.sort((a,b)=>Number(a.price||0)-Number(b.price||0));
-  if(sv==='year_desc')vs.sort((a,b)=>Number(b.year||0)-Number(a.year||0));
-  if(sv==='year_asc')vs.sort((a,b)=>Number(a.year||0)-Number(b.year||0));
-  if(fo>=vs.length&&fo>0)fo=Math.max(0,Math.floor((vs.length-1)/PAGE_SIZE)*PAGE_SIZE);
-  const page=vs.slice(fo,fo+PAGE_SIZE),av=vs.filter(v=>v.availability==='available').length;
-    m.innerHTML=`<div class="metric"><b>${vs.length}</b><small>Pojazdy (filtrowane)</small></div><div class="metric"><b>${av}</b><small>Dostepne</small></div><div class="metric"><b>${vs.length-av}</b><small>Sprzedane</small></div>`;
-    const hasPrev=fo>0,hasNext=fo+PAGE_SIZE<vs.length;
-    m.insertAdjacentHTML('beforeend',`<div class="metric"><small>Strona</small><b style="font-size:1rem">${Math.floor(fo/PAGE_SIZE)+1}</b><div style="display:flex;gap:.35rem;justify-content:center;margin-top:.35rem"><button class="btn btn-s" id="fp" ${hasPrev?'':'disabled'}>Poprzednia</button><button class="btn btn-s" id="fn" ${hasNext?'':'disabled'}>Nastepna</button></div></div>`);
-    g.innerHTML=page.map(v=>{const u=v.images&&v.images.length?img(v.images[0].image_url):null;const a=v.availability||'-';const apl=a==='available'?'dostepny':'sprzedany';
-      return`<div class="card">${u?`<img src="${e(u)}" onerror="this.outerHTML='<div class=no-img>-</div>'">`:'<div class="no-img">-</div>'}
-      <div class="card-b"><div class="card-brand">${e(v.brand)}</div><div class="card-model">${e(v.model)}</div>
-      <div style="margin:.3rem 0"><span class="badge ${a==='available'?'badge-g':'badge-a'}">${apl}</span> <span class="badge" style="background:rgba(99,102,241,.08);color:var(--accent2);border:1px solid rgba(99,102,241,.12)">${e(v.year)}</span></div>
-      <div class="card-meta">${price(v.price)}</div></div></div>`}).join('')
-    if(!page.length)g.innerHTML='<div class="alert alert-i" style="grid-column:1/-1">Brak wynikow dla aktualnych filtrow.</div>';
-    document.getElementById('fp')?.addEventListener('click',()=>{if(fo===0)return;fo=Math.max(0,fo-PAGE_SIZE);renderFleet()});
-    document.getElementById('fn')?.addEventListener('click',()=>{if(fo+PAGE_SIZE>=vs.length)return;fo+=PAGE_SIZE;renderFleet()});
-}
-fs.addEventListener('input',()=>{fo=0;if(fl)renderFleet()});
-fa.addEventListener('change',()=>{fo=0;if(fl)renderFleet()});
-fsort.addEventListener('change',()=>{fo=0;if(fl)renderFleet()});
-document.getElementById('rf').onclick=()=>{fl=false;fo=0;fv=[];loadFleet()};
-</script>
+    document.getElementById("runAgent").addEventListener("click", runAgent);
+    document.getElementById("clearAgent").addEventListener("click", () => {
+      document.getElementById("agentResult").innerHTML = "";
+    });
+    document.getElementById("questionInput").addEventListener("keydown", e => {
+      if((e.ctrlKey || e.metaKey) && e.key === "Enter"){
+        e.preventDefault();
+        runAgent();
+      }
+    });
+
+    async function runAgent(){
+      const question = document.getElementById("questionInput").value.trim();
+      if(!question) return;
+      const out = document.getElementById("agentResult");
+      const button = document.getElementById("runAgent");
+      button.disabled = true;
+      out.innerHTML = `<div class="card"><div class="alert info">Przetwarzam pytanie…</div></div>`;
+
+      try{
+        const resp = await apiFetch("/api/ask", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({question})
+        });
+        const data = await safeJson(resp);
+
+        if(!resp.ok){
+          out.innerHTML = `<div class="card"><div class="alert error">${esc(data.detail || `HTTP ${resp.status}`)}</div></div>`;
+          return;
+        }
+        if(data.error){
+          out.innerHTML = `
+            <div class="card">
+              <div class="alert error">${esc(data.error)}</div>
+              ${data.sql_query ? `<div class="sql">${esc(data.sql_query)}</div>` : ""}
+            </div>`;
+          return;
+        }
+
+        const rows = data.rows || [];
+        const columns = (data.columns && data.columns.length) ? data.columns : Object.keys(rows[0] || {});
+        const classified = rows.filter(r => r.classification_vehicle_type).length;
+
+        let tableHtml = `<div class="alert info">Brak wyników.</div>`;
+        if(rows.length){
+          tableHtml = `
+            <div class="table-wrap">
+              <table>
+                <thead><tr>${columns.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>
+                <tbody>
+                  ${rows.map(row => `<tr>${columns.map(col => {
+                    let val = row[col];
+                    if(col === "price") val = formatPrice(val);
+                    if(col === "classification_confidence") val = formatConfidence(val);
+                    if(col === "image_url" && val){
+                      const url = imageUrl(val);
+                      return `<td>${url ? `<img src="${esc(url)}" style="height:34px;border-radius:6px" onerror="this.style.display='none'">` : "–"}</td>`;
+                    }
+                    return `<td>${esc(val)}</td>`;
+                  }).join("")}</tr>`).join("")}
+                </tbody>
+              </table>
+            </div>`;
+        }
+
+        out.innerHTML = `
+          <div class="grid3">
+            <div class="metric"><b>${rows.length}</b><span>Rekordy</span></div>
+            <div class="metric"><b>${columns.length}</b><span>Kolumny</span></div>
+            <div class="metric"><b>${classified}</b><span>Sklasyfikowane</span></div>
+          </div>
+          <div class="card">
+            <div class="label">Wygenerowany SQL</div>
+            <div class="sql">${esc(data.sql_query || "")}</div>
+          </div>
+          <div class="card">
+            <div class="label">Wyjaśnienie</div>
+            <div>${esc(data.explanation || "–")}</div>
+          </div>
+          <div class="card">
+            <div class="label">Wyniki</div>
+            ${tableHtml}
+          </div>`;
+      }catch(err){
+        out.innerHTML = `<div class="card"><div class="alert error">${esc(err.message)}</div></div>`;
+      }finally{
+        button.disabled = false;
+      }
+    }
+
+    const fileInput = document.getElementById("fileInput");
+    const fileButton = document.getElementById("runFileClassify");
+    const urlInput = document.getElementById("urlInput");
+    const urlButton = document.getElementById("runUrlClassify");
+    fileInput.addEventListener("change", () => {
+      selectedFile = fileInput.files[0] || null;
+      fileButton.disabled = !selectedFile;
+    });
+    urlInput.addEventListener("keydown", e => {
+      if(e.key === "Enter"){ e.preventDefault(); runUrlClassify(); }
+    });
+    fileButton.addEventListener("click", runFileClassify);
+    urlButton.addEventListener("click", runUrlClassify);
+
+    function renderClassifyResult(data, previewUrl){
+      const out = document.getElementById("classifyResult");
+      if(data.detail){
+        out.innerHTML = `<div class="card"><div class="alert error">${esc(data.detail)}</div></div>`;
+        return;
+      }
+      out.innerHTML = `
+        <div class="card">
+          <div class="row">
+            <div>
+              ${previewUrl ? `<img src="${esc(previewUrl)}" style="width:100%;max-width:360px;border-radius:10px;border:1px solid var(--line)" onerror="this.style.display='none'">` : ""}
+            </div>
+            <div>
+              <div class="grid3">
+                <div class="metric"><b>${esc(data.vehicle_type)}</b><span>Typ</span></div>
+                <div class="metric"><b>${formatConfidence(data.confidence)}</b><span>Pewność</span></div>
+                <div class="metric"><b>${esc(data.imagenet_class)}</b><span>ImageNet</span></div>
+              </div>
+              <div style="margin-top:10px" class="alert ${data.is_vehicle ? "ok" : "info"}">
+                ${data.is_vehicle ? "Rozpoznano pojazd." : "Nie rozpoznano pojazdu."}
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function runUrlClassify(){
+      const url = urlInput.value.trim();
+      if(!url) return;
+      const out = document.getElementById("classifyResult");
+      urlButton.disabled = true;
+      out.innerHTML = `<div class="card"><div class="alert info">Klasyfikuję obraz z URL…</div></div>`;
+      try{
+        const resp = await apiFetch("/api/classify", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({image_url: url})
+        });
+        renderClassifyResult(await safeJson(resp), url);
+      }catch(err){
+        out.innerHTML = `<div class="card"><div class="alert error">${esc(err.message)}</div></div>`;
+      }finally{ urlButton.disabled = false; }
+    }
+
+    async function runFileClassify(){
+      if(!selectedFile) return;
+      const out = document.getElementById("classifyResult");
+      fileButton.disabled = true;
+      out.innerHTML = `<div class="card"><div class="alert info">Klasyfikuję przesłany plik…</div></div>`;
+      try{
+        const fd = new FormData();
+        fd.append("file", selectedFile);
+        const resp = await apiFetch("/api/classify/upload", {method:"POST", body: fd});
+        renderClassifyResult(await safeJson(resp), URL.createObjectURL(selectedFile));
+      }catch(err){
+        out.innerHTML = `<div class="card"><div class="alert error">${esc(err.message)}</div></div>`;
+      }finally{ fileButton.disabled = false; }
+    }
+
+    document.getElementById("fleetSearch").addEventListener("input", () => { fleetOffset = 0; renderFleet(); });
+    document.getElementById("fleetStatus").addEventListener("change", () => { fleetOffset = 0; renderFleet(); });
+    document.getElementById("fleetSort").addEventListener("change", () => { fleetOffset = 0; renderFleet(); });
+    document.getElementById("refreshFleet").addEventListener("click", () => {
+      fleetData = [];
+      fleetOffset = 0;
+      loadFleet();
+    });
+
+    async function loadFleet(){
+      const view = document.getElementById("fleetView");
+      view.innerHTML = `<div class="card"><div class="alert info">Pobieram flotę…</div></div>`;
+      try{
+        const resp = await apiFetch("/api/vehicles?limit=500&offset=0");
+        const data = await safeJson(resp);
+        if(!resp.ok || !Array.isArray(data)){
+          view.innerHTML = `<div class="card"><div class="alert error">Nie udało się pobrać floty.</div></div>`;
+          return;
+        }
+        fleetData = data;
+        renderFleet();
+      }catch(err){
+        view.innerHTML = `<div class="card"><div class="alert error">${esc(err.message)}</div></div>`;
+      }
+    }
+
+    function renderFleet(){
+      const search = document.getElementById("fleetSearch").value.trim().toLowerCase();
+      const status = document.getElementById("fleetStatus").value;
+      const sort = document.getElementById("fleetSort").value;
+      const metrics = document.getElementById("fleetMetrics");
+      const view = document.getElementById("fleetView");
+
+      let rows = [...fleetData];
+      if(search) rows = rows.filter(v => `${v.brand || ""} ${v.model || ""}`.toLowerCase().includes(search));
+      if(status !== "all") rows = rows.filter(v => (v.availability || "") === status);
+
+      if(sort === "brand_asc") rows.sort((a,b) => `${a.brand||""} ${a.model||""}`.localeCompare(`${b.brand||""} ${b.model||""}`, "pl"));
+      else if(sort === "price_desc") rows.sort((a,b) => Number(b.price||0) - Number(a.price||0));
+      else if(sort === "price_asc") rows.sort((a,b) => Number(a.price||0) - Number(b.price||0));
+      else if(sort === "year_desc") rows.sort((a,b) => Number(b.year||0) - Number(a.year||0));
+      else if(sort === "year_asc") rows.sort((a,b) => Number(a.year||0) - Number(b.year||0));
+
+      if(fleetOffset >= rows.length && fleetOffset > 0)
+        fleetOffset = Math.max(0, Math.floor((rows.length - 1) / PAGE_SIZE) * PAGE_SIZE);
+
+      const page = rows.slice(fleetOffset, fleetOffset + PAGE_SIZE);
+      const availableCount = rows.filter(v => v.availability === "available").length;
+      const pageNumber = Math.floor(fleetOffset / PAGE_SIZE) + 1;
+      const hasPrev = fleetOffset > 0;
+      const hasNext = fleetOffset + PAGE_SIZE < rows.length;
+
+      metrics.innerHTML = `
+        <div class="metric"><b>${rows.length}</b><span>Pojazdy</span></div>
+        <div class="metric"><b>${availableCount}</b><span>Dostępne</span></div>
+        <div class="metric"><b>${rows.length - availableCount}</b><span>Sprzedane</span></div>`;
+
+      if(!page.length){
+        view.innerHTML = `<div class="card"><div class="alert info">Brak wyników dla aktualnych filtrów.</div></div>`;
+        return;
+      }
+
+      view.innerHTML = `
+        <div class="card">
+          <div class="right" style="margin-bottom:10px">
+            <button class="btn" id="fleetPrev" ${hasPrev ? "" : "disabled"}>← Poprzednia</button>
+            <span class="page-info">Strona ${pageNumber}</span>
+            <button class="btn" id="fleetNext" ${hasNext ? "" : "disabled"}>Następna →</button>
+          </div>
+          <div class="vehicles">
+            ${page.map(v => {
+              const img = v.images && v.images.length ? imageUrl(v.images[0].image_url) : null;
+              const avail = v.availability === "available";
+              return `
+                <article class="vehicle">
+                  ${img ? `<img src="${esc(img)}" onerror="this.style.display='none'">` : `<div style="height:140px;background:var(--bg)"></div>`}
+                  <div class="b">
+                    <b>${esc(v.brand)} ${esc(v.model)}</b>
+                    <div style="margin:4px 0">
+                      <span class="badge ${avail ? "badge-ok" : "badge-warn"}">${avail ? "dostępny" : "sprzedany"}</span>
+                      <span class="badge" style="background:rgba(99,102,241,.1);color:var(--primary-2);border:1px solid rgba(99,102,241,.15)">${esc(v.year)}</span>
+                    </div>
+                    <div class="muted">${formatPrice(v.price)}</div>
+                  </div>
+                </article>`;
+            }).join("")}
+          </div>
+        </div>`;
+
+      document.getElementById("fleetPrev").addEventListener("click", () => {
+        if(!hasPrev) return;
+        fleetOffset = Math.max(0, fleetOffset - PAGE_SIZE);
+        renderFleet();
+      });
+      document.getElementById("fleetNext").addEventListener("click", () => {
+        if(!hasNext) return;
+        fleetOffset += PAGE_SIZE;
+        renderFleet();
+      });
+    }
+
+    loadHealth();
+  </script>
 </body>
 </html>
