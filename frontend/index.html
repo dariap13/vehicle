@@ -6,236 +6,544 @@
   <title>Vehicle AI Agent</title>
   <style>
     :root{
-      --bg:#0f1117;
-      --card:#1a1d27;
-      --card2:#22262f;
-      --text:#e2e8f0;
-      --muted:#8892a4;
-      --line:rgba(255,255,255,.08);
-      --line2:rgba(255,255,255,.12);
-      --primary:#6366f1;
-      --primary-2:#818cf8;
-      --danger:#f87171;
-      --ok:#34d399;
-      --warn:#fbbf24;
-      --cyan:#22d3ee;
-      --radius:12px;
-      --shadow:0 8px 24px rgba(0,0,0,.25);
+      --bg:#f8fafc;
+      --bg-soft:#eef2ff;
+      --card:#ffffff;
+      --card2:#f8fafc;
+      --card3:#eff6ff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:rgba(15,23,42,.09);
+      --line2:rgba(15,23,42,.14);
+      --primary:#2563eb;
+      --primary-2:#3b82f6;
+      --primary-soft:rgba(37,99,235,.08);
+      --danger:#dc2626;
+      --ok:#059669;
+      --warn:#d97706;
+      --cyan:#0f172a;
+      --radius:14px;
+      --radius-lg:18px;
+      --shadow:0 12px 28px rgba(15,23,42,.08);
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:var(--bg);
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,.08), transparent 22%),
+        radial-gradient(circle at top right, rgba(14,165,233,.06), transparent 18%),
+        linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
       color:var(--text);
-      line-height:1.45;
+      line-height:1.5;
     }
     ::selection{background:var(--primary);color:#fff}
     .container{
-      max-width:1100px;
+      max-width:1140px;
       margin:0 auto;
-      padding:24px 16px 40px;
+      padding:28px 16px 44px;
+    }
+    .hero{
+      background:rgba(255,255,255,.88);
+      border:1px solid var(--line);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:16px;
     }
     .top{
       display:flex;
       gap:12px;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
-      margin-bottom:16px;
       flex-wrap:wrap;
     }
-    h1{font-size:1.35rem;margin:0;color:#fff}
+    .title-wrap{min-width:260px}
+    h1{
+      font-size:1.55rem;
+      line-height:1.15;
+      margin:0 0 6px;
+      color:var(--text);
+      letter-spacing:-.02em;
+    }
     .status{
-      display:flex;align-items:center;gap:6px;
-      font-size:.82rem;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-height:40px;
+      padding:0 12px;
+      border:1px solid var(--line2);
+      border-radius:999px;
+      background:#fff;
+      font-size:.84rem;
       color:var(--muted);
+      white-space:nowrap;
     }
     .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-    .dot.on{background:var(--ok);box-shadow:0 0 6px rgba(52,211,153,.5)}
-    .dot.off{background:var(--danger);box-shadow:0 0 6px rgba(248,113,113,.5)}
+    .dot.on{background:var(--ok);box-shadow:0 0 0 4px rgba(5,150,105,.12)}
+    .dot.off{background:var(--danger);box-shadow:0 0 0 4px rgba(220,38,38,.12)}
     .tabs{
       display:flex;
-      gap:4px;
+      gap:6px;
       margin-bottom:14px;
-      background:var(--card);
+      background:#fff;
       border-radius:var(--radius);
-      padding:4px;
+      padding:6px;
       border:1px solid var(--line);
+      box-shadow:var(--shadow);
     }
     .tab{
       flex:1;
       border:none;
       background:none;
       color:var(--muted);
-      padding:8px 12px;
-      border-radius:9px;
+      padding:10px 12px;
+      border-radius:10px;
       cursor:pointer;
-      font-weight:600;
-      font-size:.9rem;
+      font-weight:700;
+      font-size:.92rem;
       text-align:center;
-      transition:.15s;
+      transition:.18s ease;
     }
-    .tab:hover{color:var(--text)}
+    .tab:hover{color:var(--text);background:#f8fafc}
     .tab.active{
       background:var(--primary);
       color:#fff;
+      box-shadow:none;
     }
     .card{
       background:var(--card);
       border:1px solid var(--line);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      padding:14px;
+      padding:16px;
       margin-bottom:12px;
     }
     .label{
       color:var(--primary-2);
       font-size:.72rem;
-      font-weight:700;
+      font-weight:800;
       text-transform:uppercase;
-      letter-spacing:.1em;
-      margin-bottom:6px;
+      letter-spacing:.12em;
+      margin-bottom:8px;
     }
-    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .label-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-bottom:8px;
+    }
+    .note{
+      color:var(--muted);
+      font-size:.82rem;
+    }
+    .row{display:flex;gap:12px;flex-wrap:wrap}
     .row > *{flex:1 1 220px}
     textarea,input,select{
       width:100%;
       border:1px solid var(--line2);
-      border-radius:10px;
-      padding:10px;
+      border-radius:12px;
+      padding:11px 12px;
       font:inherit;
-      background:var(--bg);
+      background:#fff;
       color:var(--text);
+      transition:.16s ease;
     }
+    textarea::placeholder,input::placeholder{color:#94a3b8}
     textarea:focus,input:focus,select:focus{
       outline:none;
-      border-color:var(--primary);
-      box-shadow:0 0 0 2px rgba(99,102,241,.2);
+      border-color:rgba(37,99,235,.45);
+      box-shadow:0 0 0 3px rgba(37,99,235,.12);
+      background:#fff;
     }
-    textarea{min-height:88px;resize:vertical}
+    textarea{min-height:100px;resize:vertical}
     .btn{
       border:1px solid var(--line2);
-      background:var(--card2);
+      background:#fff;
       color:var(--text);
-      padding:9px 12px;
-      border-radius:10px;
+      padding:10px 13px;
+      border-radius:11px;
       cursor:pointer;
-      font-weight:600;
-      transition:.15s;
+      font-weight:700;
+      transition:.16s ease;
     }
-    .btn:hover{background:#2a2e3a}
-    .btn:active{transform:scale(.97)}
+    .btn:hover{
+      background:var(--card2);
+      transform:translateY(-1px);
+    }
+    .btn:active{transform:scale(.98)}
     .btn.primary{
       background:var(--primary);
       color:#fff;
-      border-color:var(--primary);
+      border-color:transparent;
+      box-shadow:none;
     }
-    .btn.primary:hover{filter:brightness(1.1)}
-    .btn:disabled{opacity:.4;cursor:not-allowed}
-    .examples{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
-    .pill{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
+    .btn.primary:hover{filter:brightness(1.08)}
+    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+    .examples{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:8px;
+    }
+    .agent-stage{
+      margin-bottom:12px;
+    }
+    .agent-hero-card{
+      width:min(100%, 860px);
+      margin:0 auto;
+      padding:28px 24px;
+      text-align:center;
+      border:1px solid rgba(226,232,240,.9);
+      border-radius:28px;
+      background:
+        radial-gradient(circle at top, rgba(37,99,235,.1), transparent 36%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      box-shadow:0 12px 30px rgba(15,23,42,.08);
+    }
+    .agent-mark{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:56px;
+      height:56px;
+      margin:0 auto 14px;
+      border-radius:18px;
+      background:rgba(37,99,235,.1);
+      color:#2563eb;
+      font-size:1rem;
+      font-weight:800;
+      letter-spacing:.08em;
+    }
+    .agent-kicker{
+      margin:0 0 6px;
+      color:#2563eb;
+      font-size:.74rem;
+      font-weight:800;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .agent-title{
+      margin:0;
+      color:#0f172a;
+      font-size:1.55rem;
+      line-height:1.2;
+      font-weight:600;
+      letter-spacing:-.02em;
+    }
+    .agent-copy{
+      margin:8px auto 0;
+      max-width:620px;
+      color:#64748b;
+      font-size:.95rem;
+    }
+    .agent-suggestions{
+      width:min(100%, 920px);
+      margin:14px auto 0;
+      padding:0 4px;
+    }
+    .agent-suggestions-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .agent-suggestions-head .note{
+      color:#64748b;
+    }
+    .examples-inline{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .example-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid #e2e8f0;
+      background:#fff;
       border-radius:999px;
       padding:8px 12px;
       text-align:left;
       cursor:pointer;
+      transition:.16s ease;
+      font-family:inherit;
+      color:#334155;
+      font-size:.84rem;
+      box-shadow:0 1px 2px rgba(15,23,42,.04);
+    }
+    .example-pill:hover{
+      transform:translateY(-1px);
+      border-color:rgba(37,99,235,.28);
+      background:#eff6ff;
+      color:#0f172a;
+    }
+    .example-dot{
+      width:6px;
+      height:6px;
+      border-radius:999px;
+      background:#2563eb;
+      flex-shrink:0;
+    }
+    .example-arrow{
+      color:#94a3b8;
+      font-size:.78rem;
+    }
+    .agent-compose-card{
+      width:min(100%, 920px);
+      margin:14px auto 0;
+      border:1px solid rgba(226,232,240,.9);
+      border-radius:16px;
+      background:#ffffff;
+      box-shadow:0 8px 24px rgba(15,23,42,.06);
+      overflow:hidden;
+    }
+    .agent-compose{
+      display:flex;
+      gap:12px;
+      align-items:flex-end;
+      padding:16px;
+      background:#ffffff;
+    }
+    .agent-input{
+      flex:1;
+      min-width:0;
+    }
+    .agent-input textarea{
+      min-height:52px;
+      max-height:160px;
+      border:1px solid #dbe3ef;
+      background:#ffffff;
+      color:#0f172a;
+      border-radius:12px;
+      padding:12px 14px;
+      line-height:1.45;
+      box-shadow:none;
+    }
+    .agent-input textarea::placeholder{
+      color:#94a3b8;
+    }
+    .agent-input textarea:focus{
+      border-color:#93c5fd;
+      background:#ffffff;
+      box-shadow:0 0 0 3px rgba(37,99,235,.12);
+    }
+    .agent-actions{
+      display:flex;
+      gap:8px;
+      flex-shrink:0;
+      align-items:center;
+    }
+    .agent-compose-card .btn{
+      border-radius:10px;
+      min-height:44px;
+    }
+    .agent-compose-card .btn:not(.primary){
+      border-color:#dbe3ef;
+      background:#ffffff;
+      color:#334155;
+    }
+    .agent-compose-card .btn:not(.primary):hover{
+      background:#f8fafc;
+    }
+    .agent-send{
+      min-width:92px;
+      height:44px;
+      padding:0 16px;
+      background:#2563eb !important;
+      box-shadow:none !important;
+    }
+    .pill{
+      border:1px solid #e2e8f0;
+      background:#fff;
+      border-radius:999px;
+      padding:10px 12px;
+      text-align:left;
+      cursor:pointer;
       font-size:.85rem;
-      color:var(--muted);
+      color:#334155;
       transition:.15s;
       font-family:inherit;
     }
-    .pill:hover{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.25);color:var(--text)}
+    .pill:hover{
+      background:#eff6ff;
+      border-color:rgba(37,99,235,.24);
+      color:var(--text);
+    }
     .grid3{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
       gap:10px;
       margin-bottom:12px;
     }
-    @media (max-width:880px){.grid3{grid-template-columns:1fr}}
+    .grid2{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width:880px){
+      .grid3,.grid2{grid-template-columns:1fr}
+    }
     .metric{
       border:1px solid var(--line);
-      border-radius:10px;
-      padding:10px;
-      background:var(--card);
+      border-radius:12px;
+      padding:12px;
+      background:#fff;
       text-align:center;
     }
-    .metric b{font-size:1.3rem;display:block;color:#fff}
-    .metric span{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .metric b{font-size:1.35rem;display:block;color:var(--text);margin-bottom:2px}
+    .metric span{
+      font-size:.76rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
     .sql{
-      background:var(--bg);
-      color:var(--cyan);
-      border:1px solid var(--line);
-      border-radius:10px;
-      padding:10px;
+      background:#0f172a;
+      color:#e2e8f0;
+      border:1px solid rgba(15,23,42,.12);
+      border-radius:12px;
+      padding:12px;
       overflow:auto;
       font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-      font-size:.82rem;
+      font-size:.83rem;
       white-space:pre-wrap;
-      line-height:1.5;
+      line-height:1.55;
     }
     .alert{
-      border-radius:10px;
+      border-radius:12px;
       border:1px solid;
-      padding:9px 10px;
+      padding:10px 12px;
       font-size:.9rem;
       margin-bottom:8px;
     }
-    .alert.error{color:var(--danger);border-color:rgba(248,113,113,.2);background:rgba(248,113,113,.06)}
-    .alert.ok{color:var(--ok);border-color:rgba(52,211,153,.2);background:rgba(52,211,153,.06)}
-    .alert.info{color:var(--primary-2);border-color:rgba(99,102,241,.15);background:rgba(99,102,241,.06)}
+    .alert.error{color:var(--danger);border-color:rgba(220,38,38,.16);background:#fef2f2}
+    .alert.ok{color:var(--ok);border-color:rgba(5,150,105,.16);background:#ecfdf5}
+    .alert.info{color:var(--primary);border-color:rgba(37,99,235,.16);background:#eff6ff}
     .hide{display:none}
     .table-wrap{
       overflow:auto;
       border:1px solid var(--line);
-      border-radius:10px;
+      border-radius:12px;
+      background:#fff;
     }
     table{border-collapse:collapse;width:100%;font-size:.84rem}
-    th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-    th{background:var(--card2);font-size:.72rem;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+    th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{
+      background:#f8fafc;
+      font-size:.72rem;
+      text-transform:uppercase;
+      color:var(--muted);
+      letter-spacing:.05em;
+      position:sticky;
+      top:0;
+    }
     tr:last-child td{border-bottom:none}
-    tr:hover td{background:rgba(255,255,255,.02)}
+    tr:hover td{background:#f8fafc}
+    .thumb{
+      height:38px;
+      width:58px;
+      object-fit:cover;
+      display:block;
+      border-radius:8px;
+      border:1px solid var(--line);
+      background:#e2e8f0;
+    }
     .vehicles{
       display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
-      gap:10px;
+      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:12px;
     }
     .vehicle{
       border:1px solid var(--line);
-      border-radius:10px;
+      border-radius:14px;
       overflow:hidden;
-      background:var(--card);
-      transition:.15s;
+      background:#fff;
+      transition:.16s ease;
+      box-shadow:var(--shadow);
     }
-    .vehicle:hover{border-color:var(--line2);transform:translateY(-1px)}
+    .vehicle:hover{
+      border-color:rgba(37,99,235,.18);
+      transform:translateY(-2px);
+    }
     .vehicle img{
       width:100%;
-      height:140px;
+      height:150px;
       object-fit:cover;
       display:block;
-      background:var(--bg);
+      background:#e2e8f0;
     }
-    .vehicle .b{padding:10px}
-    .vehicle b{color:#fff}
+    .vehicle .b{padding:12px}
+    .vehicle b{color:var(--text);display:block;margin-bottom:6px}
     .muted{color:var(--muted)}
-    .right{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;align-items:center}
+    .right{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .space-between{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
     .page-info{font-size:.82rem;color:var(--muted)}
     .badge{
       display:inline-block;
-      padding:2px 8px;
+      padding:3px 8px;
       border-radius:99px;
       font-size:.72rem;
       font-weight:700;
     }
-    .badge-ok{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.2)}
-    .badge-warn{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.2)}
+    .badge-ok{background:#ecfdf5;color:var(--ok);border:1px solid rgba(5,150,105,.16)}
+    .badge-warn{background:#fffbeb;color:var(--warn);border:1px solid rgba(217,119,6,.16)}
+    .badge-neutral{background:#eff6ff;color:var(--primary);border:1px solid rgba(37,99,235,.16)}
+    .sample-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+    @media (max-width:720px){
+      .container{padding-top:20px}
+      .hero{padding:16px}
+      h1{font-size:1.35rem}
+      .tabs{gap:4px;padding:4px}
+      .tab{padding:9px 10px;font-size:.88rem}
+      .card{padding:14px}
+      .agent-hero-card{
+        padding:22px 16px;
+      }
+      .agent-suggestions{padding-left:16px;padding-right:16px}
+      .agent-title{font-size:1.28rem}
+    }
+    @media (max-width:920px){
+      .agent-compose{
+        align-items:stretch;
+        flex-direction:column;
+      }
+      .agent-actions{justify-content:flex-end}
+      .agent-send{
+        min-width:110px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="top">
-      <h1>Vehicle AI Agent</h1>
-      <div class="status" id="healthStatus"><span class="dot"></span> Łączenie...</div>
+    <div class="hero">
+      <div class="top">
+        <div class="title-wrap">
+          <h1>Vehicle AI Agent</h1>
+        </div>
+        <div class="status" id="healthStatus"><span class="dot"></span> Łączenie...</div>
+      </div>
     </div>
 
     <div class="tabs">
@@ -245,18 +553,33 @@
     </div>
 
     <section id="tab-agent">
-      <div class="card">
-        <div class="label">Pytanie do agenta</div>
-        <textarea id="questionInput" placeholder="np. Co ma Kowalski?">Co ma Kowalski?</textarea>
-        <div class="right" style="margin-top:10px">
-          <button class="btn" id="clearAgent">Wyczyść</button>
-          <button class="btn primary" id="runAgent">Uruchom</button>
+      <div class="agent-stage">
+        <div class="agent-hero-card">
+          <div class="agent-mark">AI</div>
+          <p class="agent-kicker">Vehicle AI Agent</p>
+          <h2 class="agent-title">Zapytaj o pojazdy, właścicieli lub historię transakcji</h2>
+          <p class="agent-copy">Wpisz pytanie po polsku. Agent przygotuje SQL i zwróci wynik na podstawie seeded danych.</p>
         </div>
-      </div>
 
-      <div class="card">
-        <div class="label">Przykładowe pytania</div>
-        <div class="examples" id="examples"></div>
+        <div class="agent-suggestions">
+          <div class="agent-suggestions-head">
+            <div class="label">Suggested questions</div>
+            <div class="note">Kliknij, żeby wstawić do pola</div>
+          </div>
+          <div class="examples-inline" id="examples"></div>
+        </div>
+
+        <div class="agent-compose-card">
+          <div class="agent-compose">
+            <div class="agent-input">
+              <textarea id="questionInput" placeholder="np. Co ma Kowalski?">Co ma Kowalski?</textarea>
+            </div>
+            <div class="agent-actions">
+              <button class="btn" id="clearAgent">Wyczyść</button>
+              <button class="btn primary agent-send" id="runAgent">Wyślij</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="agentResult"></div>
@@ -266,14 +589,21 @@
       <div class="card">
         <div class="row">
           <div>
-            <div class="label">URL obrazu</div>
+            <div class="label-row">
+              <div class="label">URL obrazu</div>
+              <div class="note">Link publiczny albo lokalny asset</div>
+            </div>
             <input id="urlInput" type="url" placeholder="https://...">
             <div class="right" style="margin-top:10px">
               <button class="btn primary" id="runUrlClassify">Klasyfikuj URL</button>
             </div>
+            <div class="sample-grid" id="sampleImages"></div>
           </div>
           <div>
-            <div class="label">Plik obrazu</div>
+            <div class="label-row">
+              <div class="label">Plik obrazu</div>
+              <div class="note">JPEG, PNG lub WEBP</div>
+            </div>
             <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp">
             <div class="right" style="margin-top:10px">
               <button class="btn" id="runFileClassify" disabled>Klasyfikuj plik</button>
@@ -302,7 +632,7 @@
           <div>
             <div class="label">Sortowanie</div>
             <select id="fleetSort">
-              <option value="brand_asc">Marka A–Z</option>
+              <option value="brand_asc">Marka A-Z</option>
               <option value="price_desc">Cena malejąco</option>
               <option value="price_asc">Cena rosnąco</option>
               <option value="year_desc">Rok malejąco</option>
@@ -324,6 +654,12 @@
     const API = "";
     const TIMEOUT_MS = 25000;
     const PAGE_SIZE = 6;
+    const SAMPLE_IMAGES = [
+      "vehicle_1.jpg",
+      "vehicle_2.jpg",
+      "vehicle_3.jpg",
+      "vehicle_4.jpg"
+    ];
 
     let fleetData = [];
     let fleetOffset = 0;
@@ -410,10 +746,27 @@
     const examplesEl = document.getElementById("examples");
     EXAMPLES.forEach(example => {
       const btn = document.createElement("button");
-      btn.className = "pill";
-      btn.textContent = example;
-      btn.onclick = () => { document.getElementById("questionInput").value = example; };
+      btn.className = "example-pill";
+      btn.innerHTML = `
+        <span class="example-dot"></span>
+        <span>${esc(example)}</span>
+        <span class="example-arrow">→</span>`;
+      btn.onclick = () => {
+        document.getElementById("questionInput").value = example;
+        document.getElementById("questionInput").focus();
+      };
       examplesEl.appendChild(btn);
+    });
+
+    const sampleImagesEl = document.getElementById("sampleImages");
+    SAMPLE_IMAGES.forEach(name => {
+      const btn = document.createElement("button");
+      btn.className = "pill";
+      btn.textContent = name.replace(".jpg", "");
+      btn.onclick = () => {
+        document.getElementById("urlInput").value = `${window.location.origin}/assets/images/${name}`;
+      };
+      sampleImagesEl.appendChild(btn);
     });
 
     document.getElementById("runAgent").addEventListener("click", runAgent);
@@ -473,7 +826,7 @@
                     if(col === "classification_confidence") val = formatConfidence(val);
                     if(col === "image_url" && val){
                       const url = imageUrl(val);
-                      return `<td>${url ? `<img src="${esc(url)}" style="height:34px;border-radius:6px" onerror="this.style.display='none'">` : "–"}</td>`;
+                      return `<td>${url ? `<img src="${esc(url)}" class="thumb" onerror="this.style.display='none'">` : "–"}</td>`;
                     }
                     return `<td>${esc(val)}</td>`;
                   }).join("")}</tr>`).join("")}
@@ -518,6 +871,7 @@
     urlInput.addEventListener("keydown", e => {
       if(e.key === "Enter"){ e.preventDefault(); runUrlClassify(); }
     });
+
     fileButton.addEventListener("click", runFileClassify);
     urlButton.addEventListener("click", runUrlClassify);
 
@@ -531,7 +885,7 @@
         <div class="card">
           <div class="row">
             <div>
-              ${previewUrl ? `<img src="${esc(previewUrl)}" style="width:100%;max-width:360px;border-radius:10px;border:1px solid var(--line)" onerror="this.style.display='none'">` : ""}
+              ${previewUrl ? `<img src="${esc(previewUrl)}" style="width:100%;max-width:360px;border-radius:12px;border:1px solid var(--line)" onerror="this.style.display='none'">` : ""}
             </div>
             <div>
               <div class="grid3">
@@ -644,10 +998,12 @@
 
       view.innerHTML = `
         <div class="card">
-          <div class="right" style="margin-bottom:10px">
-            <button class="btn" id="fleetPrev" ${hasPrev ? "" : "disabled"}>← Poprzednia</button>
+          <div class="space-between" style="margin-bottom:10px">
             <span class="page-info">Strona ${pageNumber}</span>
-            <button class="btn" id="fleetNext" ${hasNext ? "" : "disabled"}>Następna →</button>
+            <div class="right">
+              <button class="btn" id="fleetPrev" ${hasPrev ? "" : "disabled"}>← Poprzednia</button>
+              <button class="btn" id="fleetNext" ${hasNext ? "" : "disabled"}>Następna →</button>
+            </div>
           </div>
           <div class="vehicles">
             ${page.map(v => {
@@ -655,12 +1011,12 @@
               const avail = v.availability === "available";
               return `
                 <article class="vehicle">
-                  ${img ? `<img src="${esc(img)}" onerror="this.style.display='none'">` : `<div style="height:140px;background:var(--bg)"></div>`}
+                  ${img ? `<img src="${esc(img)}" onerror="this.style.display='none'">` : `<div style="height:150px;background:var(--bg)"></div>`}
                   <div class="b">
                     <b>${esc(v.brand)} ${esc(v.model)}</b>
-                    <div style="margin:4px 0">
+                    <div style="margin:6px 0 8px">
                       <span class="badge ${avail ? "badge-ok" : "badge-warn"}">${avail ? "dostępny" : "sprzedany"}</span>
-                      <span class="badge" style="background:rgba(99,102,241,.1);color:var(--primary-2);border:1px solid rgba(99,102,241,.15)">${esc(v.year)}</span>
+                      <span class="badge badge-neutral">${esc(v.year)}</span>
                     </div>
                     <div class="muted">${formatPrice(v.price)}</div>
                   </div>
