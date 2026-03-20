@@ -4,548 +4,756 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vehicle AI Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#f8fafc;
-      --bg-soft:#eef2ff;
-      --card:#ffffff;
-      --card2:#f8fafc;
-      --card3:#eff6ff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:rgba(15,23,42,.09);
-      --line2:rgba(15,23,42,.14);
-      --primary:#2563eb;
-      --primary-2:#3b82f6;
-      --primary-soft:rgba(37,99,235,.08);
-      --danger:#dc2626;
-      --ok:#059669;
-      --warn:#d97706;
-      --cyan:#0f172a;
-      --radius:14px;
-      --radius-lg:18px;
-      --shadow:0 12px 28px rgba(15,23,42,.08);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(37,99,235,.08), transparent 22%),
-        radial-gradient(circle at top right, rgba(14,165,233,.06), transparent 18%),
-        linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-      color:var(--text);
-      line-height:1.5;
-    }
-    ::selection{background:var(--primary);color:#fff}
-    .container{
-      max-width:1140px;
-      margin:0 auto;
-      padding:28px 16px 44px;
-    }
-    .hero{
-      background:rgba(255,255,255,.88);
-      border:1px solid var(--line);
-      border-radius:var(--radius-lg);
-      box-shadow:var(--shadow);
-      padding:18px;
-      margin-bottom:16px;
-    }
-    .top{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-    .title-wrap{min-width:260px}
-    h1{
-      font-size:1.55rem;
-      line-height:1.15;
-      margin:0 0 6px;
-      color:var(--text);
-      letter-spacing:-.02em;
-    }
-    .status{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      min-height:40px;
-      padding:0 12px;
-      border:1px solid var(--line2);
-      border-radius:999px;
-      background:#fff;
-      font-size:.84rem;
-      color:var(--muted);
-      white-space:nowrap;
-    }
-    .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-    .dot.on{background:var(--ok);box-shadow:0 0 0 4px rgba(5,150,105,.12)}
-    .dot.off{background:var(--danger);box-shadow:0 0 0 4px rgba(220,38,38,.12)}
-    .tabs{
-      display:flex;
-      gap:6px;
-      margin-bottom:14px;
-      background:#fff;
-      border-radius:var(--radius);
-      padding:6px;
-      border:1px solid var(--line);
-      box-shadow:var(--shadow);
-    }
-    .tab{
-      flex:1;
-      border:none;
-      background:none;
-      color:var(--muted);
-      padding:10px 12px;
-      border-radius:10px;
-      cursor:pointer;
-      font-weight:700;
-      font-size:.92rem;
-      text-align:center;
-      transition:.18s ease;
-    }
-    .tab:hover{color:var(--text);background:#f8fafc}
-    .tab.active{
-      background:var(--primary);
-      color:#fff;
-      box-shadow:none;
-    }
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:16px;
-      margin-bottom:12px;
-    }
-    .label{
-      color:var(--primary-2);
-      font-size:.72rem;
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      margin-bottom:8px;
-    }
-    .label-row{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      margin-bottom:8px;
-    }
-    .note{
-      color:var(--muted);
-      font-size:.82rem;
-    }
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .row > *{flex:1 1 220px}
-    textarea,input,select{
-      width:100%;
-      border:1px solid var(--line2);
-      border-radius:12px;
-      padding:11px 12px;
-      font:inherit;
-      background:#fff;
-      color:var(--text);
-      transition:.16s ease;
-    }
-    textarea::placeholder,input::placeholder{color:#94a3b8}
-    textarea:focus,input:focus,select:focus{
-      outline:none;
-      border-color:rgba(37,99,235,.45);
-      box-shadow:0 0 0 3px rgba(37,99,235,.12);
-      background:#fff;
-    }
-    textarea{min-height:100px;resize:vertical}
-    .btn{
-      border:1px solid var(--line2);
-      background:#fff;
-      color:var(--text);
-      padding:10px 13px;
-      border-radius:11px;
-      cursor:pointer;
-      font-weight:700;
-      transition:.16s ease;
-    }
-    .btn:hover{
-      background:var(--card2);
-      transform:translateY(-1px);
-    }
-    .btn:active{transform:scale(.98)}
-    .btn.primary{
-      background:var(--primary);
-      color:#fff;
-      border-color:transparent;
-      box-shadow:none;
-    }
-    .btn.primary:hover{filter:brightness(1.08)}
-    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
-    .examples{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:8px;
-    }
-    .agent-stage{
-      margin-bottom:12px;
-    }
-    .agent-hero-card{
-      width:min(100%, 860px);
-      margin:0 auto;
-      padding:28px 24px;
-      text-align:center;
-      border:1px solid rgba(226,232,240,.9);
-      border-radius:28px;
-      background:
-        radial-gradient(circle at top, rgba(37,99,235,.1), transparent 36%),
-        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-      box-shadow:0 12px 30px rgba(15,23,42,.08);
-    }
-    .agent-mark{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      width:56px;
-      height:56px;
-      margin:0 auto 14px;
-      border-radius:18px;
-      background:rgba(37,99,235,.1);
-      color:#2563eb;
-      font-size:1rem;
-      font-weight:800;
-      letter-spacing:.08em;
-    }
-    .agent-kicker{
-      margin:0 0 6px;
-      color:#2563eb;
-      font-size:.74rem;
-      font-weight:800;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-    }
-    .agent-title{
-      margin:0;
-      color:#0f172a;
-      font-size:1.55rem;
-      line-height:1.2;
-      font-weight:600;
-      letter-spacing:-.02em;
-    }
-    .agent-copy{
-      margin:8px auto 0;
-      max-width:620px;
-      color:#64748b;
-      font-size:.95rem;
-    }
-    .agent-suggestions{
-      width:min(100%, 920px);
-      margin:14px auto 0;
-      padding:0 4px;
-    }
-    .agent-suggestions-head{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      margin-bottom:10px;
-    }
-    .agent-suggestions-head .note{
-      color:#64748b;
-    }
-    .examples-inline{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-    .example-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      border:1px solid #e2e8f0;
-      background:#fff;
-      border-radius:999px;
-      padding:8px 12px;
-      text-align:left;
-      cursor:pointer;
-      transition:.16s ease;
-      font-family:inherit;
-      color:#334155;
-      font-size:.84rem;
-      box-shadow:0 1px 2px rgba(15,23,42,.04);
-    }
-    .example-pill:hover{
-      transform:translateY(-1px);
-      border-color:rgba(37,99,235,.28);
-      background:#eff6ff;
-      color:#0f172a;
-    }
-    .example-dot{
-      width:6px;
-      height:6px;
-      border-radius:999px;
-      background:#2563eb;
-      flex-shrink:0;
-    }
-    .example-arrow{
-      color:#94a3b8;
-      font-size:.78rem;
-    }
-    .agent-compose-card{
-      width:min(100%, 920px);
-      margin:14px auto 0;
-      border:1px solid rgba(226,232,240,.9);
-      border-radius:16px;
-      background:#ffffff;
-      box-shadow:0 8px 24px rgba(15,23,42,.06);
-      overflow:hidden;
-    }
-    .agent-compose{
-      display:flex;
-      gap:12px;
-      align-items:flex-end;
-      padding:16px;
-      background:#ffffff;
-    }
-    .agent-input{
-      flex:1;
-      min-width:0;
-    }
-    .agent-input textarea{
-      min-height:52px;
-      max-height:160px;
-      border:1px solid #dbe3ef;
-      background:#ffffff;
-      color:#0f172a;
-      border-radius:12px;
-      padding:12px 14px;
-      line-height:1.45;
-      box-shadow:none;
-    }
-    .agent-input textarea::placeholder{
-      color:#94a3b8;
-    }
-    .agent-input textarea:focus{
-      border-color:#93c5fd;
-      background:#ffffff;
-      box-shadow:0 0 0 3px rgba(37,99,235,.12);
-    }
-    .agent-actions{
-      display:flex;
-      gap:8px;
-      flex-shrink:0;
-      align-items:center;
-    }
-    .agent-compose-card .btn{
-      border-radius:10px;
-      min-height:44px;
-    }
-    .agent-compose-card .btn:not(.primary){
-      border-color:#dbe3ef;
-      background:#ffffff;
-      color:#334155;
-    }
-    .agent-compose-card .btn:not(.primary):hover{
-      background:#f8fafc;
-    }
-    .agent-send{
-      min-width:92px;
-      height:44px;
-      padding:0 16px;
-      background:#2563eb !important;
-      box-shadow:none !important;
-    }
-    .pill{
-      border:1px solid #e2e8f0;
-      background:#fff;
-      border-radius:999px;
-      padding:10px 12px;
-      text-align:left;
-      cursor:pointer;
-      font-size:.85rem;
-      color:#334155;
-      transition:.15s;
-      font-family:inherit;
-    }
-    .pill:hover{
-      background:#eff6ff;
-      border-color:rgba(37,99,235,.24);
-      color:var(--text);
-    }
-    .grid3{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:10px;
-      margin-bottom:12px;
-    }
-    .grid2{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:10px;
-    }
-    @media (max-width:880px){
-      .grid3,.grid2{grid-template-columns:1fr}
-    }
-    .metric{
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:12px;
-      background:#fff;
-      text-align:center;
-    }
-    .metric b{font-size:1.35rem;display:block;color:var(--text);margin-bottom:2px}
-    .metric span{
-      font-size:.76rem;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.08em;
-    }
-    .sql{
-      background:#0f172a;
-      color:#e2e8f0;
-      border:1px solid rgba(15,23,42,.12);
-      border-radius:12px;
-      padding:12px;
-      overflow:auto;
-      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-      font-size:.83rem;
-      white-space:pre-wrap;
-      line-height:1.55;
-    }
-    .alert{
-      border-radius:12px;
-      border:1px solid;
-      padding:10px 12px;
-      font-size:.9rem;
-      margin-bottom:8px;
-    }
-    .alert.error{color:var(--danger);border-color:rgba(220,38,38,.16);background:#fef2f2}
-    .alert.ok{color:var(--ok);border-color:rgba(5,150,105,.16);background:#ecfdf5}
-    .alert.info{color:var(--primary);border-color:rgba(37,99,235,.16);background:#eff6ff}
-    .hide{display:none}
-    .table-wrap{
-      overflow:auto;
-      border:1px solid var(--line);
-      border-radius:12px;
-      background:#fff;
-    }
-    table{border-collapse:collapse;width:100%;font-size:.84rem}
-    th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-    th{
-      background:#f8fafc;
-      font-size:.72rem;
-      text-transform:uppercase;
-      color:var(--muted);
-      letter-spacing:.05em;
-      position:sticky;
-      top:0;
-    }
-    tr:last-child td{border-bottom:none}
-    tr:hover td{background:#f8fafc}
-    .thumb{
-      height:38px;
-      width:58px;
-      object-fit:cover;
-      display:block;
-      border-radius:8px;
-      border:1px solid var(--line);
-      background:#e2e8f0;
-    }
-    .vehicles{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-      gap:12px;
-    }
-    .vehicle{
-      border:1px solid var(--line);
-      border-radius:14px;
-      overflow:hidden;
-      background:#fff;
-      transition:.16s ease;
-      box-shadow:var(--shadow);
-    }
-    .vehicle:hover{
-      border-color:rgba(37,99,235,.18);
-      transform:translateY(-2px);
-    }
-    .vehicle img{
-      width:100%;
-      height:150px;
-      object-fit:cover;
-      display:block;
-      background:#e2e8f0;
-    }
-    .vehicle .b{padding:12px}
-    .vehicle b{color:var(--text);display:block;margin-bottom:6px}
-    .muted{color:var(--muted)}
-    .right{
-      display:flex;
-      justify-content:flex-end;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    .space-between{
-      display:flex;
-      justify-content:space-between;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    .page-info{font-size:.82rem;color:var(--muted)}
-    .badge{
-      display:inline-block;
-      padding:3px 8px;
-      border-radius:99px;
-      font-size:.72rem;
-      font-weight:700;
-    }
-    .badge-ok{background:#ecfdf5;color:var(--ok);border:1px solid rgba(5,150,105,.16)}
-    .badge-warn{background:#fffbeb;color:var(--warn);border:1px solid rgba(217,119,6,.16)}
-    .badge-neutral{background:#eff6ff;color:var(--primary);border:1px solid rgba(37,99,235,.16)}
-    .sample-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:8px;
-      margin-top:10px;
-    }
-    @media (max-width:720px){
-      .container{padding-top:20px}
-      .hero{padding:16px}
-      h1{font-size:1.35rem}
-      .tabs{gap:4px;padding:4px}
-      .tab{padding:9px 10px;font-size:.88rem}
-      .card{padding:14px}
-      .agent-hero-card{
-        padding:22px 16px;
-      }
-      .agent-suggestions{padding-left:16px;padding-right:16px}
-      .agent-title{font-size:1.28rem}
-    }
-    @media (max-width:920px){
-      .agent-compose{
-        align-items:stretch;
-        flex-direction:column;
-      }
-      .agent-actions{justify-content:flex-end}
-      .agent-send{
-        min-width:110px;
+    :root {
+      --bg: #f4f6fb;
+      --bg-soft: #eef1f8;
+      --card: #ffffff;
+      --text: #1a1d2e;
+      --text-secondary: #5a6178;
+      --muted: #8b92a8;
+      --line: rgba(26,29,46,.08);
+      --line2: rgba(26,29,46,.12);
+      --primary: #4f6ef7;
+      --primary-dark: #3b57d9;
+      --primary-soft: rgba(79,110,247,.08);
+      --primary-glow: rgba(79,110,247,.15);
+      --danger: #e5484d;
+      --ok: #30a46c;
+      --warn: #e5a000;
+      --radius: 16px;
+      --radius-lg: 24px;
+      --shadow-sm: 0 1px 3px rgba(26,29,46,.04), 0 1px 2px rgba(26,29,46,.06);
+      --shadow: 0 4px 16px rgba(26,29,46,.06), 0 1px 3px rgba(26,29,46,.04);
+      --shadow-lg: 0 12px 40px rgba(26,29,46,.08), 0 4px 12px rgba(26,29,46,.04);
+      --transition: .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection { background: var(--primary); color: #fff; }
+
+    /* --- Header --- */
+    .header {
+      background: linear-gradient(135deg, #1a1d2e 0%, #2a2f45 100%);
+      padding: 0 24px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary) 0%, #7c5cfc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: .8rem;
+      letter-spacing: .04em;
+      box-shadow: 0 2px 8px rgba(79,110,247,.3);
+    }
+    .logo-text {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .logo-text span {
+      color: rgba(255,255,255,.45);
+      font-weight: 400;
+      margin-left: 2px;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      font-size: .82rem;
+      color: rgba(255,255,255,.6);
+      backdrop-filter: blur(8px);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot.on { background: #30a46c; box-shadow: 0 0 0 3px rgba(48,164,108,.25); }
+    .dot.off { background: var(--danger); box-shadow: 0 0 0 3px rgba(229,72,77,.25); }
+
+    /* --- Layout --- */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 24px 48px;
+    }
+
+    /* --- Tabs --- */
+    .tabs {
+      display: inline-flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+    }
+    .tab {
+      border: none;
+      background: none;
+      color: var(--muted);
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: .88rem;
+      font-family: inherit;
+      transition: var(--transition);
+      position: relative;
+    }
+    .tab:hover { color: var(--text); background: var(--bg-soft); }
+    .tab.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(79,110,247,.3);
+    }
+
+    /* --- Cards --- */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .label {
+      color: var(--primary);
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 10px;
+    }
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .note {
+      color: var(--muted);
+      font-size: .82rem;
+    }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .row > * { flex: 1 1 220px; }
+
+    /* --- Form elements --- */
+    textarea, input[type="url"], input[type="text"], select {
+      width: 100%;
+      border: 1.5px solid var(--line2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      font-size: .92rem;
+      background: var(--card);
+      color: var(--text);
+      transition: var(--transition);
+    }
+    textarea::placeholder, input::placeholder { color: var(--muted); }
+    textarea:focus, input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    input[type="file"] {
+      font: inherit;
+      font-size: .88rem;
+      color: var(--text-secondary);
+      padding: 10px 0;
+    }
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b92a8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    /* --- Buttons --- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1.5px solid var(--line2);
+      background: var(--card);
+      color: var(--text);
+      padding: 10px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: .88rem;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .btn:hover {
+      background: var(--bg-soft);
+      border-color: rgba(79,110,247,.2);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn:active { transform: scale(.98); }
+    .btn.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(79,110,247,.25);
+    }
+    .btn.primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 12px rgba(79,110,247,.35);
+    }
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* --- Agent Tab --- */
+    .agent-stage { margin-bottom: 16px; }
+
+    .agent-hero-card {
+      width: min(100%, 880px);
+      margin: 0 auto;
+      padding: 48px 32px 36px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, #fff 0%, var(--bg-soft) 100%);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .agent-hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .agent-mark {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary) 0%, #7c5cfc 100%);
+      color: #fff;
+      font-size: .85rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      box-shadow: 0 4px 16px rgba(79,110,247,.3);
+    }
+    .agent-kicker {
+      margin: 0 0 6px;
+      color: var(--primary);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .agent-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 1.6rem;
+      line-height: 1.25;
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+    .agent-copy {
+      margin: 10px auto 0;
+      max-width: 560px;
+      color: var(--text-secondary);
+      font-size: .92rem;
+      line-height: 1.6;
+    }
+
+    .agent-suggestions {
+      padding: 0 16px 16px;
+      border-top: 1px solid var(--line);
+    }
+    .agent-suggestions-label {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin: 12px 0 10px;
+    }
+
+    .examples-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .example-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line2);
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 7px 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+      color: var(--text-secondary);
+      font-size: .8rem;
+    }
+    .example-pill:hover {
+      border-color: rgba(79,110,247,.35);
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+    }
+    .example-dot { display: none; }
+    .example-arrow {
+      color: var(--muted);
+      font-size: .72rem;
+      transition: var(--transition);
+    }
+    .example-pill:hover .example-arrow {
+      color: var(--primary);
+      transform: translateX(2px);
+    }
+
+    .agent-compose-card {
+      width: min(100%, 920px);
+      margin: 16px auto 0;
+      border: 1.5px solid var(--line2);
+      border-radius: 20px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .agent-compose-card:focus-within {
+      border-color: rgba(79,110,247,.35);
+      box-shadow: var(--shadow-lg), 0 0 0 3px var(--primary-glow);
+    }
+    .agent-compose {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      padding: 12px 12px 12px 20px;
+    }
+    .agent-input { flex: 1; min-width: 0; }
+    .agent-input textarea {
+      min-height: 44px;
+      max-height: 160px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      border-radius: 0;
+      padding: 10px 0;
+      line-height: 1.5;
+      resize: none;
+      font-size: .95rem;
+    }
+    .agent-input textarea:focus {
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      outline: none;
+    }
+    .agent-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+      align-items: center;
+      padding-bottom: 4px;
+    }
+    .agent-icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+    .agent-icon-btn:hover {
+      background: var(--bg);
+      color: var(--text-secondary);
+    }
+    .agent-icon-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    .agent-send-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      box-shadow: 0 2px 8px rgba(79,110,247,.3);
+    }
+    .agent-send-btn:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 14px rgba(79,110,247,.4);
+      transform: translateY(-1px);
+    }
+    .agent-send-btn:active { transform: scale(.95); }
+    .agent-send-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .agent-send-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* --- Pill (sample images) --- */
+    .pill {
+      border: 1.5px solid var(--line2);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 10px 14px;
+      text-align: left;
+      cursor: pointer;
+      font-size: .84rem;
+      color: var(--text-secondary);
+      font-family: inherit;
+      transition: var(--transition);
+    }
+    .pill:hover {
+      background: var(--primary-soft);
+      border-color: rgba(79,110,247,.25);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    /* --- Grids --- */
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 880px) {
+      .grid3, .grid2 { grid-template-columns: 1fr; }
+    }
+
+    /* --- Metrics --- */
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: var(--card);
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+    .metric:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    .metric b {
+      font-size: 1.5rem;
+      display: block;
+      color: var(--text);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    .metric span {
+      font-size: .72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 600;
+    }
+
+    /* --- SQL block --- */
+    .sql {
+      background: #1a1d2e;
+      color: #c8d1e0;
+      border-radius: 12px;
+      padding: 16px;
+      overflow: auto;
+      font-family: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .83rem;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.2);
+    }
+
+    /* --- Alerts --- */
+    .alert {
+      border-radius: 12px;
+      border: 1.5px solid;
+      padding: 12px 16px;
+      font-size: .88rem;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    .alert.error {
+      color: var(--danger);
+      border-color: rgba(229,72,77,.15);
+      background: #fef2f2;
+    }
+    .alert.ok {
+      color: var(--ok);
+      border-color: rgba(48,164,108,.15);
+      background: #ecfdf5;
+    }
+    .alert.info {
+      color: var(--primary);
+      border-color: rgba(79,110,247,.15);
+      background: rgba(79,110,247,.04);
+    }
+    .alert.info::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin-right: 8px;
+      animation: pulse 1.5s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .3; }
+    }
+
+    .hide { display: none; }
+
+    /* --- Table --- */
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+    table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--bg);
+      font-size: .72rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: .05em;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(79,110,247,.02); }
+    .thumb {
+      height: 38px;
+      width: 58px;
+      object-fit: cover;
+      display: block;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--bg-soft);
+    }
+
+    /* --- Fleet vehicles --- */
+    .vehicles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 14px;
+    }
+    .vehicle {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--card);
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+    .vehicle:hover {
+      border-color: rgba(79,110,247,.2);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .vehicle img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+      background: var(--bg-soft);
+    }
+    .vehicle .b { padding: 14px 16px; }
+    .vehicle b {
+      color: var(--text);
+      display: block;
+      margin-bottom: 8px;
+      font-size: .95rem;
+    }
+    .muted { color: var(--muted); }
+
+    .right {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .space-between {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .page-info {
+      font-size: .84rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* --- Badges --- */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .badge-ok {
+      background: #ecfdf5;
+      color: var(--ok);
+      border: 1px solid rgba(48,164,108,.15);
+    }
+    .badge-warn {
+      background: #fffbeb;
+      color: var(--warn);
+      border: 1px solid rgba(229,160,0,.15);
+    }
+    .badge-neutral {
+      background: rgba(79,110,247,.06);
+      color: var(--primary);
+      border: 1px solid rgba(79,110,247,.12);
+    }
+
+    .sample-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    /* --- Animations --- */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card, .agent-hero-card, .agent-compose-card, .metric {
+      animation: fadeIn .35s ease-out;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 720px) {
+      .container { padding: 16px 16px 32px; }
+      .header-inner { height: 56px; }
+      .logo-text { font-size: .95rem; }
+      .tabs { gap: 2px; padding: 4px; }
+      .tab { padding: 9px 14px; font-size: .84rem; }
+      .card { padding: 16px; }
+      .agent-hero-card { padding: 32px 20px 28px; }
+      .agent-title { font-size: 1.3rem; }
+      .agent-suggestions { padding: 0 12px 12px; }
+    }
+    @media (max-width: 920px) {
+      .agent-compose {
+        padding: 10px 10px 10px 16px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="hero">
-      <div class="top">
-        <div class="title-wrap">
-          <h1>Vehicle AI Agent</h1>
-        </div>
-        <div class="status" id="healthStatus"><span class="dot"></span> Łączenie...</div>
+  <div class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">VA</div>
+        <div class="logo-text">Vehicle AI <span>Agent</span></div>
       </div>
+      <div class="status" id="healthStatus"><span class="dot"></span> Laczenie...</div>
     </div>
+  </div>
 
+  <div class="container">
     <div class="tabs">
       <button class="tab active" data-tab="agent">Agent</button>
       <button class="tab" data-tab="classifier">Klasyfikator</button>
@@ -557,27 +765,27 @@
         <div class="agent-hero-card">
           <div class="agent-mark">AI</div>
           <p class="agent-kicker">Vehicle AI Agent</p>
-          <h2 class="agent-title">Zapytaj o pojazdy, właścicieli lub historię transakcji</h2>
-          <p class="agent-copy">Wpisz pytanie po polsku. Agent przygotuje SQL i zwróci wynik na podstawie seeded danych.</p>
-        </div>
-
-        <div class="agent-suggestions">
-          <div class="agent-suggestions-head">
-            <div class="label">Suggested questions</div>
-            <div class="note">Kliknij, żeby wstawić do pola</div>
-          </div>
-          <div class="examples-inline" id="examples"></div>
+          <h2 class="agent-title">Zapytaj o pojazdy, wlascicieli lub historie transakcji</h2>
+          <p class="agent-copy">Wpisz pytanie po polsku. Agent przygotuje SQL i zwroci wynik na podstawie seeded danych.</p>
         </div>
 
         <div class="agent-compose-card">
           <div class="agent-compose">
             <div class="agent-input">
-              <textarea id="questionInput" placeholder="np. Co ma Kowalski?">Co ma Kowalski?</textarea>
+              <textarea id="questionInput" placeholder="np. Co ma Kowalski?"></textarea>
             </div>
             <div class="agent-actions">
-              <button class="btn" id="clearAgent">Wyczyść</button>
-              <button class="btn primary agent-send" id="runAgent">Wyślij</button>
+              <button class="agent-icon-btn" id="clearAgent" title="Wyczysc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+              <button class="agent-send-btn" id="runAgent" title="Wyslij (Ctrl+Enter)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              </button>
             </div>
+          </div>
+          <div class="agent-suggestions">
+            <div class="agent-suggestions-label">Wyprobuj:</div>
+            <div class="examples-inline" id="examples"></div>
           </div>
         </div>
       </div>
@@ -594,7 +802,7 @@
               <div class="note">Link publiczny albo lokalny asset</div>
             </div>
             <input id="urlInput" type="url" placeholder="https://...">
-            <div class="right" style="margin-top:10px">
+            <div class="right" style="margin-top:12px">
               <button class="btn primary" id="runUrlClassify">Klasyfikuj URL</button>
             </div>
             <div class="sample-grid" id="sampleImages"></div>
@@ -605,7 +813,7 @@
               <div class="note">JPEG, PNG lub WEBP</div>
             </div>
             <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp">
-            <div class="right" style="margin-top:10px">
+            <div class="right" style="margin-top:12px">
               <button class="btn" id="runFileClassify" disabled>Klasyfikuj plik</button>
             </div>
           </div>
@@ -625,7 +833,7 @@
             <div class="label">Status</div>
             <select id="fleetStatus">
               <option value="all">Wszystkie</option>
-              <option value="available">Dostępne</option>
+              <option value="available">Dostepne</option>
               <option value="sold">Sprzedane</option>
             </select>
           </div>
@@ -633,15 +841,15 @@
             <div class="label">Sortowanie</div>
             <select id="fleetSort">
               <option value="brand_asc">Marka A-Z</option>
-              <option value="price_desc">Cena malejąco</option>
-              <option value="price_asc">Cena rosnąco</option>
-              <option value="year_desc">Rok malejąco</option>
-              <option value="year_asc">Rok rosnąco</option>
+              <option value="price_desc">Cena malejaco</option>
+              <option value="price_asc">Cena rosnaco</option>
+              <option value="year_desc">Rok malejaco</option>
+              <option value="year_asc">Rok rosnaco</option>
             </select>
           </div>
         </div>
-        <div class="right" style="margin-top:10px">
-          <button class="btn" id="refreshFleet">Odśwież</button>
+        <div class="right" style="margin-top:12px">
+          <button class="btn" id="refreshFleet">Odswiez</button>
         </div>
       </div>
 
@@ -673,13 +881,13 @@
     }
 
     function formatPrice(v){
-      if(v == null || v === "") return "–";
+      if(v == null || v === "") return "\u2013";
       try { return `${Number(v).toLocaleString("pl-PL")} PLN`; }
       catch { return String(v); }
     }
 
     function formatConfidence(v){
-      if(v == null) return "–";
+      if(v == null) return "\u2013";
       return `${(Number(v) * 100).toFixed(1)}%`;
     }
 
@@ -726,22 +934,22 @@
         const resp = await apiFetch("/api/health");
         const data = await safeJson(resp);
         if(resp.ok && data.status === "ok"){
-          el.innerHTML = `<span class="dot on"></span> Połączony`;
+          el.innerHTML = `<span class="dot on"></span> Polaczony`;
         }else{
           el.innerHTML = `<span class="dot off"></span> Problem z backendem`;
         }
       }catch{
-        el.innerHTML = `<span class="dot off"></span> Rozłączony`;
+        el.innerHTML = `<span class="dot off"></span> Rozlaczony`;
       }
     }
 
     const EXAMPLES = [
       "Co ma Kowalski?",
-      "Auta powyżej 100k",
+      "Auta powyzej 100k",
       "Co kupiono w 2020?",
-      "Do kogo poszło BMW X5?",
+      "Do kogo poszlo BMW X5?",
       "Historia Corolli",
-      "Ile aut dostępnych?"
+      "Ile aut dostepnych?"
     ];
     const examplesEl = document.getElementById("examples");
     EXAMPLES.forEach(example => {
@@ -750,7 +958,7 @@
       btn.innerHTML = `
         <span class="example-dot"></span>
         <span>${esc(example)}</span>
-        <span class="example-arrow">→</span>`;
+        <span class="example-arrow">\u2192</span>`;
       btn.onclick = () => {
         document.getElementById("questionInput").value = example;
         document.getElementById("questionInput").focus();
@@ -786,7 +994,7 @@
       const out = document.getElementById("agentResult");
       const button = document.getElementById("runAgent");
       button.disabled = true;
-      out.innerHTML = `<div class="card"><div class="alert info">Przetwarzam pytanie…</div></div>`;
+      out.innerHTML = `<div class="card"><div class="alert info">Przetwarzam pytanie\u2026</div></div>`;
 
       try{
         const resp = await apiFetch("/api/ask", {
@@ -813,7 +1021,7 @@
         const columns = (data.columns && data.columns.length) ? data.columns : Object.keys(rows[0] || {});
         const classified = rows.filter(r => r.classification_vehicle_type).length;
 
-        let tableHtml = `<div class="alert info">Brak wyników.</div>`;
+        let tableHtml = `<div class="alert info">Brak wynikow.</div>`;
         if(rows.length){
           tableHtml = `
             <div class="table-wrap">
@@ -826,7 +1034,7 @@
                     if(col === "classification_confidence") val = formatConfidence(val);
                     if(col === "image_url" && val){
                       const url = imageUrl(val);
-                      return `<td>${url ? `<img src="${esc(url)}" class="thumb" onerror="this.style.display='none'">` : "–"}</td>`;
+                      return `<td>${url ? `<img src="${esc(url)}" class="thumb" onerror="this.style.display='none'">` : "\u2013"}</td>`;
                     }
                     return `<td>${esc(val)}</td>`;
                   }).join("")}</tr>`).join("")}
@@ -846,8 +1054,8 @@
             <div class="sql">${esc(data.sql_query || "")}</div>
           </div>
           <div class="card">
-            <div class="label">Wyjaśnienie</div>
-            <div>${esc(data.explanation || "–")}</div>
+            <div class="label">Wyjasnienie</div>
+            <div>${esc(data.explanation || "\u2013")}</div>
           </div>
           <div class="card">
             <div class="label">Wyniki</div>
@@ -885,15 +1093,15 @@
         <div class="card">
           <div class="row">
             <div>
-              ${previewUrl ? `<img src="${esc(previewUrl)}" style="width:100%;max-width:360px;border-radius:12px;border:1px solid var(--line)" onerror="this.style.display='none'">` : ""}
+              ${previewUrl ? `<img src="${esc(previewUrl)}" style="width:100%;max-width:360px;border-radius:14px;border:1px solid var(--line);box-shadow:var(--shadow-sm)" onerror="this.style.display='none'">` : ""}
             </div>
             <div>
               <div class="grid3">
                 <div class="metric"><b>${esc(data.vehicle_type)}</b><span>Typ</span></div>
-                <div class="metric"><b>${formatConfidence(data.confidence)}</b><span>Pewność</span></div>
+                <div class="metric"><b>${formatConfidence(data.confidence)}</b><span>Pewnosc</span></div>
                 <div class="metric"><b>${esc(data.imagenet_class)}</b><span>ImageNet</span></div>
               </div>
-              <div style="margin-top:10px" class="alert ${data.is_vehicle ? "ok" : "info"}">
+              <div style="margin-top:12px" class="alert ${data.is_vehicle ? "ok" : "info"}">
                 ${data.is_vehicle ? "Rozpoznano pojazd." : "Nie rozpoznano pojazdu."}
               </div>
             </div>
@@ -906,7 +1114,7 @@
       if(!url) return;
       const out = document.getElementById("classifyResult");
       urlButton.disabled = true;
-      out.innerHTML = `<div class="card"><div class="alert info">Klasyfikuję obraz z URL…</div></div>`;
+      out.innerHTML = `<div class="card"><div class="alert info">Klasyfikuje obraz z URL\u2026</div></div>`;
       try{
         const resp = await apiFetch("/api/classify", {
           method: "POST",
@@ -923,7 +1131,7 @@
       if(!selectedFile) return;
       const out = document.getElementById("classifyResult");
       fileButton.disabled = true;
-      out.innerHTML = `<div class="card"><div class="alert info">Klasyfikuję przesłany plik…</div></div>`;
+      out.innerHTML = `<div class="card"><div class="alert info">Klasyfikuje przeslany plik\u2026</div></div>`;
       try{
         const fd = new FormData();
         fd.append("file", selectedFile);
@@ -945,12 +1153,12 @@
 
     async function loadFleet(){
       const view = document.getElementById("fleetView");
-      view.innerHTML = `<div class="card"><div class="alert info">Pobieram flotę…</div></div>`;
+      view.innerHTML = `<div class="card"><div class="alert info">Pobieram flote\u2026</div></div>`;
       try{
         const resp = await apiFetch("/api/vehicles?limit=500&offset=0");
         const data = await safeJson(resp);
         if(!resp.ok || !Array.isArray(data)){
-          view.innerHTML = `<div class="card"><div class="alert error">Nie udało się pobrać floty.</div></div>`;
+          view.innerHTML = `<div class="card"><div class="alert error">Nie udalo sie pobrac floty.</div></div>`;
           return;
         }
         fleetData = data;
@@ -988,21 +1196,21 @@
 
       metrics.innerHTML = `
         <div class="metric"><b>${rows.length}</b><span>Pojazdy</span></div>
-        <div class="metric"><b>${availableCount}</b><span>Dostępne</span></div>
+        <div class="metric"><b>${availableCount}</b><span>Dostepne</span></div>
         <div class="metric"><b>${rows.length - availableCount}</b><span>Sprzedane</span></div>`;
 
       if(!page.length){
-        view.innerHTML = `<div class="card"><div class="alert info">Brak wyników dla aktualnych filtrów.</div></div>`;
+        view.innerHTML = `<div class="card"><div class="alert info">Brak wynikow dla aktualnych filtrow.</div></div>`;
         return;
       }
 
       view.innerHTML = `
         <div class="card">
-          <div class="space-between" style="margin-bottom:10px">
+          <div class="space-between" style="margin-bottom:12px">
             <span class="page-info">Strona ${pageNumber}</span>
             <div class="right">
-              <button class="btn" id="fleetPrev" ${hasPrev ? "" : "disabled"}>← Poprzednia</button>
-              <button class="btn" id="fleetNext" ${hasNext ? "" : "disabled"}>Następna →</button>
+              <button class="btn" id="fleetPrev" ${hasPrev ? "" : "disabled"}>\u2190 Poprzednia</button>
+              <button class="btn" id="fleetNext" ${hasNext ? "" : "disabled"}>Nastepna \u2192</button>
             </div>
           </div>
           <div class="vehicles">
@@ -1011,11 +1219,11 @@
               const avail = v.availability === "available";
               return `
                 <article class="vehicle">
-                  ${img ? `<img src="${esc(img)}" onerror="this.style.display='none'">` : `<div style="height:150px;background:var(--bg)"></div>`}
+                  ${img ? `<img src="${esc(img)}" onerror="this.style.display='none'">` : `<div style="height:160px;background:var(--bg-soft)"></div>`}
                   <div class="b">
                     <b>${esc(v.brand)} ${esc(v.model)}</b>
-                    <div style="margin:6px 0 8px">
-                      <span class="badge ${avail ? "badge-ok" : "badge-warn"}">${avail ? "dostępny" : "sprzedany"}</span>
+                    <div style="margin:6px 0 10px">
+                      <span class="badge ${avail ? "badge-ok" : "badge-warn"}">${avail ? "dostepny" : "sprzedany"}</span>
                       <span class="badge badge-neutral">${esc(v.year)}</span>
                     </div>
                     <div class="muted">${formatPrice(v.price)}</div>
